@@ -1,11 +1,15 @@
 import streamlit as st
 import requests
-import json
 import os
 
 # --- SETTINGS ---
-# Backend API Address
-API_URL = os.getenv("API_URL", "http://127.0.0.1:8000/recommend")
+# 1. Base URL'i alıyoruz (Sonunda /recommend OLMAMALI)
+# Docker'dan gelen: http://backend:8000
+API_BASE_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
+
+# 2. Endpoint'i biz ekliyoruz (Garanti yöntem)
+ENDPOINT = "/recommend"
+FULL_API_URL = f"{API_BASE_URL}{ENDPOINT}"
 
 # Page Configuration
 st.set_page_config(
@@ -13,6 +17,9 @@ st.set_page_config(
     page_icon="🛍️",
     layout="wide"
 )
+
+# --- DEBUGGING (Bunu hatayı çözmek için ekledik, sonra silebilirsin) ---
+st.write(f"🔌 **Connected to:** `{FULL_API_URL}`")
 
 # --- TITLE & HEADER ---
 st.title("🛍️ H&M AI Personal Stylist")
@@ -37,35 +44,47 @@ if search_btn and query:
         try:
             # Send Request to Backend
             payload = {"text": query, "top_k": top_k}
-            response = requests.post(API_URL, json=payload)
+
+            # DÜZELTME BURADA: API_URL yerine FULL_API_URL kullanıyoruz
+            response = requests.post(FULL_API_URL, json=payload, timeout=10)
 
             if response.status_code == 200:
                 data = response.json()
                 results = data.get("results", [])
+                source = data.get("source", "Unknown")  # Kaynak bilgisi (Redis/DB)
 
                 if not results:
                     st.warning("Sorry, I couldn't find anything suitable for this.")
                 else:
-                    st.success(f"🎉 I found {len(results)} great pieces for you!")
+                    # Kaynak bilgisini gösterelim
+                    if source == "redis_cache":
+                        st.success(f"⚡ Found {len(results)} items (Loaded from Cache 🚀)!")
+                    else:
+                        st.success(f"🐢 Found {len(results)} items (Processed by AI Model 🧠)!")
 
                     # List Results
                     for item in results:
                         with st.container():
                             col1, col2 = st.columns([1, 4])
 
+                            # Detayları güvenli çekelim (Hata almamak için .get kullanıyoruz)
+                            details = item.get('details', {})
+
                             with col1:
                                 st.markdown("# 👗")
-                                st.metric(label="Matching Score", value=f"%{item['similarity_score'] * 100:.1f}")
+                                st.metric(label="Match Score", value=f"{item.get('score', 0):.4f}")
 
                             with col2:
-                                st.subheader(item['product_name'])
+                                st.subheader(item.get('product_name', 'Unknown Product'))
                                 st.caption(
-                                    f"Category: {item['details']['product_group_name']} | Tip: {item['details']['product_type_name']}")
-                                st.write(f"**Detail:** {item['details'].get('detail_desc', 'No explanation.')}")
+                                    f"Category: {details.get('product_group_name', '-')} | Type: {details.get('product_type_name', '-')}")
+                                st.write(f"**Description:** {details.get('detail_desc', 'No description available.')}")
                                 st.markdown("---")
 
             else:
-                st.error(f"An error occurred! API Code: {response.status_code}")
+                st.error(f"❌ An error occurred! API Code: {response.status_code}")
+                st.error(f"Server Message: {response.text}")
 
         except requests.exceptions.ConnectionError:
-            st.error("🚨 Backend API is unavailable! Have you started the API? (uvicorn)")
+            st.error(f"🚨 Connection Error! Could not reach: {FULL_API_URL}")
+            st.info("Check if Docker container 'hm_api' is running.")

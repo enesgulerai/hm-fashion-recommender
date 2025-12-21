@@ -28,8 +28,11 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PATH="/opt/venv/bin:$PATH"
 
-# 👇 UPDATED SECTION: Set the correct Hugging Face Home 👇
-# We point HF_HOME to a directory we control (/app/models)
+# 👇 PATH AYARI (Çok Önemli - Bunu Ekledik) 👇
+# Python'a "src" klasörünün /app altında olduğunu söylüyoruz.
+ENV PYTHONPATH="${PYTHONPATH}:/app"
+
+# 👇 Hugging Face Cache Settings 👇
 ENV HF_HOME="/app/models"
 ENV SENTENCE_TRANSFORMERS_HOME="/app/models"
 
@@ -44,7 +47,7 @@ COPY --from=builder /opt/venv /opt/venv
 # Copy source codes
 COPY . .
 
-# 👇 Create the directory and give permissions to hm_user 👇
+# 👇 Permissions 👇
 RUN mkdir -p /app/models && chown -R hm_user:hm_app /app
 
 # 2. SECURITY: Change ownership
@@ -53,5 +56,5 @@ RUN chown -R hm_user:hm_app /app
 # 3. SECURITY: Switch user
 USER hm_user
 
-# Default command
-CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# 👇 CMD GÜNCELLENDİ (main -> app) 👇
+CMD ["uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port", "8000"]

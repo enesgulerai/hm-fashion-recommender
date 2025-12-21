@@ -1,0 +1,3 @@
+[2025-12-21 14:28:56,811] INFO: HTTP Request: GET http://testserver/ "HTTP/1.1 200 OK"
+[2025-12-21 14:28:56,823] INFO: HTTP Request: POST http://testserver/recommend "HTTP/1.1 200 OK"
+[2025-12-21 14:28:56,830] INFO: HTTP Request: POST http://testserver/recommend "HTTP/1.1 422 Unprocessable Entity"

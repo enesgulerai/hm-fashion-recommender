@@ -1,0 +1,22 @@
+[2025-12-21 10:38:48,820] INFO: ✅ Redis Connection Established on redis!
+[2025-12-21 10:38:48,820] INFO: 🚀 Initializing AI Pipeline...
+[2025-12-21 10:38:48,822] INFO: 🔌 Connecting to Qdrant at qdrant:6333...
+[2025-12-21 10:38:48,833] INFO: ✅ Connected to Qdrant successfully!
+[2025-12-21 10:38:48,833] INFO: 🚀 Loading AI Model: sentence-transformers/all-MiniLM-L6-v2...
+[2025-12-21 10:38:48,834] INFO: Load pretrained SentenceTransformer: sentence-transformers/all-MiniLM-L6-v2
+[2025-12-21 10:39:01,943] INFO: Use pytorch device_name: cpu
+[2025-12-21 10:39:01,945] INFO: ✅ AI Model Loaded!
+[2025-12-21 10:39:01,945] INFO: ✅ Model and Qdrant DB Ready!
+[2025-12-21 10:39:20,862] INFO: ⚡ CACHE HIT for 'skirt for summer'
+[2025-12-21 10:39:25,509] INFO: ⚡ CACHE HIT for 'skirt for summer'
+[2025-12-21 10:39:25,745] INFO: ⚡ CACHE HIT for 'skirt for summer'
+[2025-12-21 10:39:25,892] INFO: ⚡ CACHE HIT for 'skirt for summer'
+[2025-12-21 10:39:26,059] INFO: ⚡ CACHE HIT for 'skirt for summer'
+[2025-12-21 10:39:26,259] INFO: ⚡ CACHE HIT for 'skirt for summer'
+[2025-12-21 10:39:26,444] INFO: ⚡ CACHE HIT for 'skirt for summer'
+[2025-12-21 10:39:26,619] INFO: ⚡ CACHE HIT for 'skirt for summer'
+[2025-12-21 10:39:26,780] INFO: ⚡ CACHE HIT for 'skirt for summer'
+[2025-12-21 10:39:26,947] INFO: ⚡ CACHE HIT for 'skirt for summer'
+[2025-12-21 10:39:27,083] INFO: ⚡ CACHE HIT for 'skirt for summer'
+[2025-12-21 10:39:27,251] INFO: ⚡ CACHE HIT for 'skirt for summer'
+[2025-12-21 10:46:43,299] INFO: 🛑 API Shutting Down...

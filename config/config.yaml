@@ -1,0 +1,19 @@
+# --- Dizin Ayarları ---
+paths:
+  raw_data: "data/raw"        # CSV dosyalarının olduğu klasör
+  processed_data: "data/processed"
+
+# --- Dosya İsimleri ---
+files:
+  articles: "articles.csv"    # Veri setinin adı
+
+# --- Qdrant Veritabanı Ayarları ---
+qdrant:
+  host: "localhost"           # Docker'da bu 'hm_qdrant' olacak (kod hallediyor)
+  port: 6333
+  collection_name: "hm_items"
+  vector_size: 384            # all-MiniLM-L6-v2 modelinin çıktı boyutu
+
+# --- Yapay Zeka Modeli ---
+model:
+  name: "sentence-transformers/all-MiniLM-L6-v2"

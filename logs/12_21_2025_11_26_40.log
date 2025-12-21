@@ -1,0 +1,9 @@
+[2025-12-21 11:26:40,768] INFO: ✅ Redis Connection Established on redis!
+[2025-12-21 11:26:40,768] INFO: 🚀 Initializing AI Pipeline...
+[2025-12-21 11:26:40,771] INFO: 🔌 Connecting to Qdrant at qdrant:6333...
+[2025-12-21 11:26:40,783] INFO: ✅ Connected to Qdrant successfully!
+[2025-12-21 11:26:40,784] INFO: 🚀 Loading AI Model: sentence-transformers/all-MiniLM-L6-v2...
+[2025-12-21 11:26:40,785] INFO: Load pretrained SentenceTransformer: sentence-transformers/all-MiniLM-L6-v2
+[2025-12-21 11:26:44,857] INFO: Use pytorch device_name: cpu
+[2025-12-21 11:26:44,859] INFO: ✅ AI Model Loaded!
+[2025-12-21 11:26:44,859] INFO: ✅ Model and Qdrant DB Ready!

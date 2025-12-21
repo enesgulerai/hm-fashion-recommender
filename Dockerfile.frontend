@@ -30,6 +30,9 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PATH="/opt/venv/bin:$PATH"
 
+# 👇 EKLEME: Python Path Ayarı (Import hatasını önler) 👇
+ENV PYTHONPATH="${PYTHONPATH}:/app"
+
 # Essential libraries required for Streamlit
 RUN apt-get update && apt-get install -y \
     libgomp1 \
@@ -47,5 +50,5 @@ RUN chown -R hm_user:hm_app /app
 # 3. SECURITY: Switch user
 USER hm_user
 
-# Start streamlit
-CMD ["streamlit", "run", "src/frontend/ui.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# 👇 DÜZELTME: Dosya yolu güncellendi (ui.py -> dashboard.py) 👇
+CMD ["streamlit", "run", "src/ui/dashboard.py", "--server.port=8501", "--server.address=0.0.0.0"]

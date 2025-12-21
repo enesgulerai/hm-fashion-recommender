@@ -18,7 +18,7 @@ services:
     image: redis:alpine
     container_name: hm_redis
     ports:
-      - "6380:6379" # Host port changed to 6380 to avoid conflict with CRM
+      - "6380:6379" # Dışarıya 6380, içeriye 6379 (Doğru)
     volumes:
       - redis_data_hm:/data
     restart: always
@@ -30,7 +30,7 @@ services:
     image: prom/prometheus:latest
     container_name: hm_prometheus
     ports:
-      - "9091:9090" # Changed to 9091 to avoid conflict with CRM (9090)
+      - "9091:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     command:
@@ -44,21 +44,22 @@ services:
     image: grafana/grafana:latest
     container_name: hm_grafana
     ports:
-      - "3001:3000" # Changed to 3001 to avoid conflict with CRM (3000)
+      - "3001:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     restart: always
     networks:
       - hm_network
 
-  # 5. ETL WORKER (No restart:always here, it runs once and stops)
+  # 5. ETL WORKER
   etl:
     build:
       context: .
-      dockerfile: Dockerfile.api
+      dockerfile: Dockerfile.api # API imajını kullanabilir, kütüphaneler aynı
     container_name: hm_etl_worker
     user: root
-    command: python src/ingest_vectors.py
+    # DÜZELTME: Dosya yolu güncellendi ve modül olarak çağrıldı
+    command: python -m src.pipelines.ingestion_pipeline
     depends_on:
       - qdrant
     environment:
@@ -68,20 +69,22 @@ services:
     networks:
       - hm_network
 
-  # 6. BACKEND API
+# 6. BACKEND API
   backend:
     build:
       context: .
       dockerfile: Dockerfile.api
     container_name: hm_api
     ports:
-      - "8001:8000" # Host port 8001 to avoid conflict with CRM
+      - "8001:8000"
     depends_on:
       - qdrant
       - redis
     environment:
       - QDRANT_HOST=qdrant
       - REDIS_HOST=redis
+    volumes:
+      - ./logs:/app/logs
     restart: always
     networks:
       - hm_network
@@ -93,11 +96,13 @@ services:
       dockerfile: Dockerfile.frontend
     container_name: hm_ui
     ports:
-      - "8502:8501" # Host port 8502 to avoid conflict with CRM
+      - "8502:8501" # Host:8502 -> Container:8501 (Streamlit Default)
     depends_on:
       - backend
     environment:
-      - API_URL=http://backend:8000/recommend
+      # DÜZELTME: /recommend kısmını sildik.
+      # Ayrıca 'backend' servis ismini kullandık (api değil)
+      - API_URL=http://backend:8000
     restart: always
     networks:
       - hm_network
