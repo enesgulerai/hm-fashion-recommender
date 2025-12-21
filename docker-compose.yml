@@ -89,20 +89,18 @@ services:
     networks:
       - hm_network
 
-  # 7. FRONTEND
+# 7. FRONTEND
   frontend:
     build:
       context: .
       dockerfile: Dockerfile.frontend
     container_name: hm_ui
     ports:
-      - "8502:8501" # Host:8502 -> Container:8501 (Streamlit Default)
+      - "8502:8501"
     depends_on:
       - backend
     environment:
-      # DÜZELTME: /recommend kısmını sildik.
-      # Ayrıca 'backend' servis ismini kullandık (api değil)
-      - API_URL=http://backend:8000
+      - BACKEND_URL=http://backend:8000
     restart: always
     networks:
       - hm_network
