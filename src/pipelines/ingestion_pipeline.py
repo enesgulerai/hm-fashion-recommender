@@ -26,7 +26,6 @@ class IngestionPipeline:
                                           self.config['files']['articles'])
 
         # 3. Setup Qdrant Client (CRITICAL FIX 🛠️)
-        # Docker Environment Variable varsa onu kullan, yoksa Config dosyasındaki "localhost"u al.
         self.qdrant_host = os.getenv("QDRANT_HOST", self.config['qdrant']['host'])
         self.qdrant_port = int(os.getenv("QDRANT_PORT", self.config['qdrant']['port']))
 
@@ -61,7 +60,6 @@ class IngestionPipeline:
         try:
             print(f"📂 Reading Data from: {self.articles_path}")
 
-            # Dosya var mı kontrolü
             if not os.path.exists(self.articles_path):
                 raise FileNotFoundError(f"Data file not found at: {self.articles_path}")
 

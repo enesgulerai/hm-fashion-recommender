@@ -4,7 +4,6 @@ import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import MagicMock
 
-# 1. Proje ana dizinini Python yoluna ekle (Import hatası almamak için)
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.api.app import app
@@ -13,19 +12,19 @@ from src.api.app import app
 @pytest.fixture
 def client():
     """
-    FastAPI uygulaması için bir Test Client oluşturur.
+    Creates a Test Client for the FastAPI application.
     """
     return TestClient(app)
 
-# 3. Mock Pipeline Fixture (Yapay Zeka'yı Taklit Etme)
+# 3. Mock Pipeline Fixture
 @pytest.fixture
 def mock_pipeline():
     """
-    Gerçek Qdrant ve AI modelini yüklemek yerine,
-    sahte (mock) bir pipeline döndürür. Böylece testler hızlı çalışır.
+    Instead of loading the real Qdrant and AI model, it returns a mock pipeline.
+    This allows tests to run faster.
     """
     mock = MagicMock()
-    # search_products fonksiyonu çağrıldığında dönecek sahte cevap
+    # a fake answer that will be returned when the search_products function is called
     mock.search_products.return_value = [
         {
             "score": 0.95,

@@ -4,8 +4,8 @@ from unittest.mock import patch
 
 def test_home_endpoint(client):
     """
-    Test: GET / (Ana Sayfa)
-    Beklenen: 200 OK ve "alive" mesajı.
+    Test: GET / (Homepage)
+    Expected: 200 OK and "alive" message.
     """
     response = client.get("/")
     assert response.status_code == 200
@@ -14,13 +14,13 @@ def test_home_endpoint(client):
 
 def test_recommend_endpoint_success(client):
     """
-    Test: POST /recommend (Başarılı Arama)
-    Senaryo: Kullanıcı geçerli bir metin yollar.
-    Beklenen: 200 OK ve sonuç listesi.
+    Test: POST /recommend (Successful Search)
+    Scenario: User sends valid text.
+    Expected: 200 OKs and a list of results.
     """
-    # Pipeline'ı ve Redis'i mockluyoruz (Gerçek bağlantı yapmasın)
+    # We're mocking Pipeline and Redis (so it doesn't make a real connection).
     with patch("src.api.app.ml_pipeline") as mock_pipeline:
-        # Pipeline'ın ne döndüreceğini ayarlıyoruz
+        # We are setting what the pipeline will return.
         mock_pipeline.search_products.return_value = [
             {"product_name": "Mock Dress", "score": 0.99}
         ]
@@ -37,11 +37,10 @@ def test_recommend_endpoint_success(client):
 
 def test_recommend_endpoint_invalid_input(client):
     """
-    Test: POST /recommend (Hatalı Giriş)
-    Senaryo: Kullanıcı çok kısa bir metin yollar.
-    Beklenen: 422 Unprocessable Entity (Validation Error).
+    Test: POST /recommend (Invalid Input)
+    Scenario: User sends a very short text.
+    Expected: 422 Unprocessable Entity (Validation Error).
     """
-    # 2 karakterden kısa metin yasak
     payload = {"text": "a", "top_k": 5}
     response = client.post("/recommend", json=payload)
 

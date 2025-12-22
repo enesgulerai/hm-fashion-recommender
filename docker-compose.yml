@@ -18,7 +18,7 @@ services:
     image: redis:alpine
     container_name: hm_redis
     ports:
-      - "6380:6379" # Dışarıya 6380, içeriye 6379 (Doğru)
+      - "6380:6379"
     volumes:
       - redis_data_hm:/data
     restart: always
@@ -55,10 +55,9 @@ services:
   etl:
     build:
       context: .
-      dockerfile: Dockerfile.api # API imajını kullanabilir, kütüphaneler aynı
+      dockerfile: Dockerfile.api
     container_name: hm_etl_worker
     user: root
-    # DÜZELTME: Dosya yolu güncellendi ve modül olarak çağrıldı
     command: python -m src.pipelines.ingestion_pipeline
     depends_on:
       - qdrant

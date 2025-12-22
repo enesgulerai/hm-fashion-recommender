@@ -9,7 +9,6 @@ ENDPOINT = "/recommend"
 
 FULL_API_URL = f"{BASE_URL.rstrip('/')}{ENDPOINT}"
 
-print(f"DEBUG: Gidilecek Adres -> {FULL_API_URL}")
 
 # Page Configuration
 st.set_page_config(
@@ -18,8 +17,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- DEBUGGING (Bunu hatayı çözmek için ekledik, sonra silebilirsin) ---
-st.write(f"🔌 **Connected to:** `{FULL_API_URL}`")
 
 # --- TITLE & HEADER ---
 st.title("🛍️ H&M AI Personal Stylist")
@@ -45,18 +42,16 @@ if search_btn and query:
             # Send Request to Backend
             payload = {"text": query, "top_k": top_k}
 
-            # DÜZELTME BURADA: API_URL yerine FULL_API_URL kullanıyoruz
             response = requests.post(FULL_API_URL, json=payload, timeout=10)
 
             if response.status_code == 200:
                 data = response.json()
                 results = data.get("results", [])
-                source = data.get("source", "Unknown")  # Kaynak bilgisi (Redis/DB)
+                source = data.get("source", "Unknown")
 
                 if not results:
                     st.warning("Sorry, I couldn't find anything suitable for this.")
                 else:
-                    # Kaynak bilgisini gösterelim
                     if source == "redis_cache":
                         st.success(f"⚡ Found {len(results)} items (Loaded from Cache 🚀)!")
                     else:
@@ -67,7 +62,6 @@ if search_btn and query:
                         with st.container():
                             col1, col2 = st.columns([1, 4])
 
-                            # Detayları güvenli çekelim (Hata almamak için .get kullanıyoruz)
                             details = item.get('details', {})
 
                             with col1:

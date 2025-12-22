@@ -7,17 +7,16 @@ from src.pipelines.inference_pipeline import InferencePipeline
 @patch("src.pipelines.inference_pipeline.SentenceTransformer")
 def test_pipeline_initialization(mock_sentence_transformer, mock_qdrant_client):
     """
-    Test: Pipeline Başlatma
-    Amacı: Qdrant ve Model yüklenirken hata çıkıyor mu?
+    Test: Pipeline Initialization Objective: Are there any errors while loading Qdrant and Model?
     """
-    # Mock nesneleri ayarla
+    # Set mock objects
     mock_qdrant_instance = MagicMock()
     mock_qdrant_client.return_value = mock_qdrant_instance
 
-    # Pipeline'ı başlat
+    # Start the pipeline
     pipeline = InferencePipeline()
 
-    # Model ve Client çağrıldı mı kontrol et
+    # Check if Model and Client were called.
     mock_qdrant_client.assert_called()
     mock_sentence_transformer.assert_called()
     assert pipeline.client == mock_qdrant_instance
@@ -27,20 +26,17 @@ def test_pipeline_initialization(mock_sentence_transformer, mock_qdrant_client):
 @patch("src.pipelines.inference_pipeline.SentenceTransformer")
 def test_search_logic(mock_sentence_transformer, mock_qdrant_client):
     """
-    Test: Arama Fonksiyonu
-    Amacı: Verilen metin vektöre çevrilip Qdrant'a soruluyor mu?
+    Test: Lookup Function
+    Purpose: Is the given text converted to a vector and queried in Qdrant?
     """
     # 1. Setup Mocks
     pipeline = InferencePipeline()
 
-    # DÜZELTME BURADA:
-    # Kodun içinde .tolist() çağrıldığı için, mock nesnesinin tolist()
-    # metodunun bir liste döndürmesini sağlıyoruz.
     mock_vector = MagicMock()
     mock_vector.tolist.return_value = [0.1, 0.2, 0.3]
-    pipeline.encoder.encode.return_value = mock_vector  # tolist() metodu olan bir nesne döndür
+    pipeline.encoder.encode.return_value = mock_vector
 
-    # Qdrant mock: Sahte arama sonucu dönsün
+    # Qdrant mock: Return a fake search result.
     mock_hit = MagicMock()
     mock_hit.score = 0.88
     mock_hit.payload = {"prod_name": "Test Item", "detail_desc": "Desc"}
@@ -50,7 +46,6 @@ def test_search_logic(mock_sentence_transformer, mock_qdrant_client):
     results = pipeline.search_products("running shoes", top_k=2)
 
     # 3. Assertions
-    # Sonuçların boş gelmediğini ve doğru datayı içerdiğini doğrula
     assert len(results) == 1
     assert results[0]["product_name"] == "Test Item"
     assert results[0]["score"] == 0.88

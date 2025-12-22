@@ -30,7 +30,6 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PATH="/opt/venv/bin:$PATH"
 
-# 👇 EKLEME: Python Path Ayarı (Import hatasını önler) 👇
 ENV PYTHONPATH="${PYTHONPATH}:/app"
 
 # Essential libraries required for Streamlit
@@ -50,5 +49,4 @@ RUN chown -R hm_user:hm_app /app
 # 3. SECURITY: Switch user
 USER hm_user
 
-# 👇 DÜZELTME: Dosya yolu güncellendi (ui.py -> dashboard.py) 👇
 CMD ["streamlit", "run", "src/ui/dashboard.py", "--server.port=8501", "--server.address=0.0.0.0"]

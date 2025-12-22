@@ -4,3 +4,10 @@
 [2025-12-22 07:29:50,369] INFO: ✅ Connected to Qdrant successfully!
 [2025-12-22 07:29:50,370] INFO: 🚀 Loading AI Model: sentence-transformers/all-MiniLM-L6-v2...
 [2025-12-22 07:29:50,370] INFO: Load pretrained SentenceTransformer: sentence-transformers/all-MiniLM-L6-v2
+[2025-12-22 07:30:11,550] INFO: Use pytorch device_name: cpu
+[2025-12-22 07:30:11,551] INFO: ✅ AI Model Loaded!
+[2025-12-22 07:30:11,552] INFO: ✅ Model and Qdrant DB Ready!
+[2025-12-22 07:30:23,532] INFO: 🐢 CACHE MISS. Asking AI Model for 'hat for summer'...
+[2025-12-22 07:30:23,544] INFO: 🔎 SEARCHING: 'hat for summer'
+[2025-12-22 07:30:24,695] INFO: HTTP Request: POST http://qdrant:6333/collections/hm_items/points/search "HTTP/1.1 200 OK"
+[2025-12-22 08:59:14,710] INFO: 🛑 API Shutting Down...

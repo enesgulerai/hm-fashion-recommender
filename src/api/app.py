@@ -8,35 +8,31 @@ import json
 import os
 import sys
 
-# --- MODÜL YOLU AYARI ---
-# src klasörüne erişebilmek için
+# --- MODULE PATH SETTING ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(os.path.dirname(current_dir))
 sys.path.append(project_root)
 
-# Bizim yazdığımız "Senior" Pipeline
 from ..pipelines.inference_pipeline import InferencePipeline
 from ..utils.common import read_config
 from ..utils.logger import logger
 
-# --- GLOBAL DEĞİŞKENLER ---
-# Pipeline ve Redis client global olarak tutulacak
+# --- GLOBAL VARIABLES ---
 ml_pipeline = None
 redis_client = None
 config = read_config("config/config.yaml")
 
 
-# --- LIFESPAN (BAŞLANGIÇ & BİTİŞ) ---
+# --- LIFESPAN ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    API başlarken Model ve Redis bağlantılarını kurar.
-    Kapanırken kaynakları serbest bırakır.
+    The API establishes connections between Model and Redis when it starts.
+    It releases resources when it closes.
     """
     global ml_pipeline, redis_client
 
-    # 1. REDIS BAĞLANTISI
-    # (Config'den veya Env'den alabiliriz, şimdilik Env öncelikli)
+    # 1. REDIS CONNECTION
     redis_host = os.getenv("REDIS_HOST", "localhost")
     try:
         redis_client = redis.Redis(host=redis_host, port=6379, db=0, decode_responses=True)
@@ -46,22 +42,21 @@ async def lifespan(app: FastAPI):
         logger.warning(f"⚠️ Redis Connection Failed: {e}. Caching disabled.")
         redis_client = None
 
-    # 2. PIPELINE BAŞLATMA (Model ve Qdrant burada yüklenir)
+    # 2. PIPELINE INITIATION (Model and Qdrant are loaded here)
     logger.info("🚀 Initializing AI Pipeline...")
-    # InferencePipeline class'ı zaten __init__ içinde modeli RAM'e yüklüyor
     ml_pipeline = InferencePipeline()
     logger.info("✅ Model and Qdrant DB Ready!")
 
-    yield  # API burada çalışır
+    yield # API works here
 
-    # 3. TEMİZLİK
+    # 3. CLEANING
     logger.info("🛑 API Shutting Down...")
     ml_pipeline = None
     if redis_client:
         redis_client.close()
 
 
-# --- UYGULAMA TANIMI ---
+# --- APPLICATION DESCRIPTION ---
 app = FastAPI(
     title="H&M Fashion Recommender API",
     description="Production-ready API with Redis Caching & Prometheus Monitoring",
@@ -73,7 +68,7 @@ app = FastAPI(
 Instrumentator().instrument(app).expose(app)
 
 
-# --- Pydantic Modelleri ---
+# --- Pydantic Models ---
 class SearchRequest(BaseModel):
     text: str = Field(..., min_length=2, example="Black leather jacket")
     top_k: int = Field(5, ge=1, le=20, example=5)
@@ -98,7 +93,7 @@ def recommend_products(request: SearchRequest):
     Returns similar products using Redis Caching + Vector Search Pipeline.
     """
     try:
-        # --- 1. REDIS CACHE KONTROLÜ ---
+        # --- 1. REDIS CACHE CONTROL ---
         normalized_text = request.text.lower().strip()
         cache_key = f"search:{normalized_text}:{request.top_k}"
 
@@ -108,26 +103,24 @@ def recommend_products(request: SearchRequest):
                 logger.info(f"⚡ CACHE HIT for '{normalized_text}'")
                 return json.loads(cached_result)
 
-        # --- 2. PIPELINE ÇAĞRISI (CACHE MISS) ---
+        # --- 2. PIPELINE CALL (CACHE MISS) ---
         logger.info(f"🐢 CACHE MISS. Asking AI Model for '{normalized_text}'...")
 
-        # O karmaşık Qdrant kodları yerine sadece tek satır:
         results = ml_pipeline.search_products(request.text, top_k=request.top_k)
 
-        # Sonuçlara kaynak etiketi ekleyelim
+        # Let's add source tags to the results.
         final_response = {
             "results": results,
             "source": "vector_db",
             "count": len(results)
         }
 
-        # --- 3. REDIS'E KAYDETME ---
+        # --- 3. SAVING TO REDIS ---
         if redis_client and results:
-            # Cache'e kaydederken kaynağı değiştirelim ki okuyan bilsin
             cache_data = final_response.copy()
             cache_data["source"] = "redis_cache"
 
-            # 1 saat (3600 sn) cache'de tut
+            # Keep in cache for 1 hour (3600 seconds)
             redis_client.setex(cache_key, 3600, json.dumps(cache_data))
 
         return final_response
