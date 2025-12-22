@@ -59,6 +59,7 @@ services:
     container_name: hm_etl_worker
     user: root
     command: python -m src.pipelines.ingestion_pipeline
+    restart: always
     depends_on:
       - qdrant
     environment:
