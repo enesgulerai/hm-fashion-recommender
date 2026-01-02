@@ -3,7 +3,7 @@ FROM python:3.10-slim as builder
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     gcc \
     libpq-dev \
     python3-dev \
@@ -12,46 +12,42 @@ RUN apt-get update && apt-get install -y \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY requirements.txt .
+COPY src/api/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # --- STAGE 2: RUNTIME ---
 FROM python:3.10-slim as runtime
 
-# 1. SECURITY: Create a non-root group and user
-RUN groupadd -r hm_app && useradd -r -g hm_app hm_user
+RUN groupadd -r hm_app && useradd -r -g hm_app -d /home/hm_user -m hm_user
 
 WORKDIR /app
 
-# Python optimizations
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PATH="/opt/venv/bin:$PATH"
-
 ENV PYTHONPATH="${PYTHONPATH}:/app"
 
-# 👇 Hugging Face Cache Settings 👇
 ENV HF_HOME="/app/models"
 ENV SENTENCE_TRANSFORMERS_HOME="/app/models"
 
-# Lightweight runtime libraries
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     libgomp1 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy compiled libraries
 COPY --from=builder /opt/venv /opt/venv
 
-# Copy source codes
-COPY . .
+COPY config/ ./config/
+COPY src/__init__.py ./src/
+COPY src/api/ ./src/api/
+COPY src/components/ ./src/components/
+COPY src/pipelines/ ./src/pipelines/
+COPY src/utils/ ./src/utils/
 
-# 👇 Permissions 👇
-RUN mkdir -p /app/models && chown -R hm_user:hm_app /app
+RUN mkdir -p /app/models && \
+    chown -R hm_user:hm_app /app && \
+    chown -R hm_user:hm_app /home/hm_user
 
-# 2. SECURITY: Change ownership
-RUN chown -R hm_user:hm_app /app
-
-# 3. SECURITY: Switch user
 USER hm_user
 
 CMD ["uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port", "8000"]

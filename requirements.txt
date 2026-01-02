@@ -1,14 +1,7 @@
---extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.2.0
-pandas==2.2.0
-numpy==1.26.4
-fastapi==0.109.0
-uvicorn==0.27.0
-qdrant-client==1.9.1
-sentence-transformers==2.5.1
-streamlit==1.31.0
-requests==2.31.0
+# --- Master Requirements File ---
+
+-r src/api/requirements.txt
+-r src/ui/requirements.txt
+
 pytest==8.0.0
-httpx==0.27.0
-redis==5.0.1
-prometheus-fastapi-instrumentator
+black

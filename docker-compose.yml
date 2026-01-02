@@ -12,6 +12,11 @@ services:
     restart: always
     networks:
       - hm_network
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'cat < /dev/null > /dev/tcp/localhost/6333'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # 2. REDIS
   redis:
@@ -24,6 +29,11 @@ services:
     restart: always
     networks:
       - hm_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   # 3. MONITORING - PROMETHEUS
   prometheus:
@@ -59,9 +69,10 @@ services:
     container_name: hm_etl_worker
     user: root
     command: python -m src.pipelines.ingestion_pipeline
-    restart: always
+    restart: on-failure
     depends_on:
-      - qdrant
+      qdrant:
+        condition: service_healthy
     environment:
       - QDRANT_HOST=qdrant
     volumes:
@@ -69,7 +80,7 @@ services:
     networks:
       - hm_network
 
-# 6. BACKEND API
+  # 6. BACKEND API
   backend:
     build:
       context: .
@@ -78,8 +89,10 @@ services:
     ports:
       - "8001:8000"
     depends_on:
-      - qdrant
-      - redis
+      qdrant:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       - QDRANT_HOST=qdrant
       - REDIS_HOST=redis
@@ -88,8 +101,13 @@ services:
     restart: always
     networks:
       - hm_network
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/docs').getcode() == 200"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-# 7. FRONTEND
+  # 7. FRONTEND
   frontend:
     build:
       context: .
@@ -98,7 +116,8 @@ services:
     ports:
       - "8502:8501"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     environment:
       - BACKEND_URL=http://backend:8000
     restart: always

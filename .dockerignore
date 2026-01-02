@@ -2,7 +2,7 @@
 .git
 .gitignore
 
-# Python
+# Python Cache & Environment
 __pycache__
 *.pyc
 *.pyo
@@ -15,6 +15,10 @@ venv/
 # Data & Storage
 data/
 qdrant_storage/
+logs/
+notebooks/
+tests/
+docs/
 mlruns/
 mlartifacts/
 
