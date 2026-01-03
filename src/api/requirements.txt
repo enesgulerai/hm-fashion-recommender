@@ -1,19 +1,20 @@
-# --- AI Core (CPU Optimized) ---
+# --- AI Core (CPU Optimized & Secured) ---
 --extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.2.0
-sentence-transformers==2.5.1
+torch==2.6.0
+torchvision==0.21.0
+sentence-transformers==3.0.1
 
 # --- API Server ---
-fastapi==0.109.0
-uvicorn==0.27.0
+fastapi==0.111.0
+uvicorn==0.30.1
 httpx==0.27.0
 prometheus-fastapi-instrumentator
 
 # --- Database & Storage ---
 qdrant-client==1.9.1
-redis==5.0.1
+redis==5.0.4
 
 # --- Data Processing ---
-pandas==2.2.0
+pandas==2.2.2
 numpy==1.26.4
-requests==2.31.0
+requests==2.32.3

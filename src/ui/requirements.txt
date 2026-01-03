@@ -1,9 +1,9 @@
 # --- Dashboard Framework ---
-streamlit==1.31.0
+streamlit==1.36.0
 
 # --- Data Handling ---
-pandas==2.2.0
+pandas==2.2.2
 numpy==1.26.4
 
 # --- Network ---
-requests==2.31.0
+requests==2.32.3
