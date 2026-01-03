@@ -7,21 +7,36 @@ import redis
 import json
 import os
 import sys
+import numpy as np
 
 # --- MODULE PATH SETTING ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(os.path.dirname(current_dir))
 sys.path.append(project_root)
 
-from ..pipelines.inference_pipeline import InferencePipeline
-from ..utils.common import read_config
-from ..utils.logger import logger
+from src.pipelines.inference_pipeline import InferencePipeline
+from src.utils.common import read_config
+from src.utils.logger import logger
 
 # --- GLOBAL VARIABLES ---
 ml_pipeline = None
 redis_client = None
 config = read_config("config/config.yaml")
 
+# --- JSON FIX FOR NUMPY (CRITICAL FOR STABILITY) ---
+class NpEncoder(json.JSONEncoder):
+    """
+    The standard JSON library does not recognize Numpy numbers (float32, int64).
+    This class converts them to standard Python numbers (float, int).
+    """
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super(NpEncoder, self).default(obj)
 
 # --- LIFESPAN ---
 @asynccontextmanager
@@ -37,20 +52,20 @@ async def lifespan(app: FastAPI):
     try:
         redis_client = redis.Redis(host=redis_host, port=6379, db=0, decode_responses=True)
         if redis_client.ping():
-            logger.info(f"✅ Redis Connection Established on {redis_host}!")
+            logger.info(f"Redis Connection Established on {redis_host}!")
     except Exception as e:
-        logger.warning(f"⚠️ Redis Connection Failed: {e}. Caching disabled.")
+        logger.warning(f"Redis Connection Failed: {e}. Caching disabled.")
         redis_client = None
 
-    # 2. PIPELINE INITIATION (Model and Qdrant are loaded here)
-    logger.info("🚀 Initializing AI Pipeline...")
+    # 2. PIPELINE INITIATION
+    logger.info("Initializing AI Pipeline...")
     ml_pipeline = InferencePipeline()
-    logger.info("✅ Model and Qdrant DB Ready!")
+    logger.info("Model and Qdrant DB Ready!")
 
     yield # API works here
 
     # 3. CLEANING
-    logger.info("🛑 API Shutting Down...")
+    logger.info("API Shutting Down...")
     ml_pipeline = None
     if redis_client:
         redis_client.close()
@@ -60,7 +75,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="H&M Fashion Recommender API",
     description="Production-ready API with Redis Caching & Prometheus Monitoring",
-    version="2.0.0",
+    version="2.1.0",
     lifespan=lifespan
 )
 
@@ -104,7 +119,7 @@ def recommend_products(request: SearchRequest):
                 return json.loads(cached_result)
 
         # --- 2. PIPELINE CALL (CACHE MISS) ---
-        logger.info(f"🐢 CACHE MISS. Asking AI Model for '{normalized_text}'...")
+        logger.info(f"CACHE MISS. Asking AI Model for '{normalized_text}'...")
 
         results = ml_pipeline.search_products(request.text, top_k=request.top_k)
 
@@ -121,14 +136,14 @@ def recommend_products(request: SearchRequest):
             cache_data["source"] = "redis_cache"
 
             # Keep in cache for 1 hour (3600 seconds)
-            redis_client.setex(cache_key, 3600, json.dumps(cache_data))
+            redis_client.setex(cache_key, 3600, json.dumps(cache_data, cls=NpEncoder))
 
         return final_response
 
     except Exception as e:
-        logger.error(f"❌ API ERROR: {str(e)}")
+        logger.error(f"API ERROR: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)
