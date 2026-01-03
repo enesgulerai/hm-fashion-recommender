@@ -57,6 +57,8 @@ services:
       - "3001:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data_hm:/var/lib/grafana
     restart: always
     networks:
       - hm_network
@@ -126,6 +128,7 @@ services:
 
 volumes:
   redis_data_hm:
+  grafana_data_hm:
 
 networks:
   hm_network:

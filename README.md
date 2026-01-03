@@ -54,6 +54,13 @@ graph LR
 * redis: In-memory key-value store for caching search results.
 * etl-worker: An automated service that runs on startup to ingest & embed data if the DB is empty.
 
+## 📊 System Monitoring
+Real-time API metrics tracked via **Prometheus** and visualized on **Grafana**.
+- **Left:** Average Latency (~2ms response time thanks to Redis caching).
+- **Right:** Real-time request throughput.
+
+![Dashboard](docs/images/dashboard.png)
+
 ## 🚀 Quick Start
 You don't need to install Python or libraries manually. Just use Docker.
 
