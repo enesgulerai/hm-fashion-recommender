@@ -122,18 +122,24 @@ The project includes a robust integration and unit test suite using **Pytest**. 
 
 ### How to Run Tests Locally:
 
-1. **Setup a Dedicated Test Environment (Recommended):**
+#### 1. **Setup a Virtual Environment:**
+   We use standard python `venv` for isolation.
+
    ```bash
-   # Create a new environment
-   conda create -n hm-recsys-test python=3.10 -y
+   # 1. Create the virtual environment (.venv)
+   python -m venv .venv
 
-   # Activate the environment
-   conda activate hm-recsys-test
+   # 2. Activate the environment
+   # On Windows (PowerShell):
+   .\.venv\Scripts\Activate.ps1
+   # On macOS/Linux:
+   source .venv/bin/activate
 
-   # Install dependencies
-   pip install -r requirements.txt
+   # 3. Install dependencies (Resolving conflicts between API & UI)
+   pip install -r src/api/requirements.txt -r src/ui/requirements.txt -r requirements.txt
    ```
-2. Execute the Test Suite:
+
+#### 2. Execute the Test Suite:
 ```bash
 pytest tests/ -v
 ```
