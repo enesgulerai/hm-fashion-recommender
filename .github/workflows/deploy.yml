@@ -20,23 +20,21 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
-          # Connection timeout (waiting for server to respond initially)
           timeout: 30s
-          # Execution timeout (waiting for commands like docker build to finish)
-          # Increased to 30m to prevent timeouts on t2.micro instances
           command_timeout: 30m
           script: |
-            # Navigate to the project directory
+            set -e
+
             cd /home/ubuntu/hm-fashion-recommender
-            
-            # Pull the latest changes from the repository
+
+            echo "Git pull is in progress..."
             git pull origin main
-            
-            # Stop existing containers
+
+            echo "Old containers are being discontinued..."
             docker-compose down
-            
-            # Rebuild and start the containers in detached mode
-            docker-compose up --build -d
-            
-            # Remove unused images to save disk space
-            docker image prune -f
+
+            echo "Disk cleaning (Prune) is being performed..."
+            docker system prune -a -f
+
+            echo "New build is starting..."
+            docker-compose up --build -d --force-recreate
