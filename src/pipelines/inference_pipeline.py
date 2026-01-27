@@ -1,7 +1,8 @@
-import sys
 import os
-from sentence_transformers import SentenceTransformer
+import sys
+
 from qdrant_client import QdrantClient
+from sentence_transformers import SentenceTransformer
 
 # Relative import to access the config reader
 from ..utils.common import read_config
@@ -19,21 +20,24 @@ class InferencePipeline:
         self.config = read_config(config_path)
 
         # 2. Setup Qdrant Connection Settings
-        self.qdrant_host = os.getenv("QDRANT_HOST", self.config['qdrant']['host'])
-        self.qdrant_port = int(os.getenv("QDRANT_PORT", self.config['qdrant']['port']))
-        self.collection_name = self.config['qdrant']['collection_name']
+        self.qdrant_host = os.getenv("QDRANT_HOST", self.config["qdrant"]["host"])
+        self.qdrant_port = int(os.getenv("QDRANT_PORT", self.config["qdrant"]["port"]))
+        self.collection_name = self.config["qdrant"]["collection_name"]
 
-        logger.info(f"🔌 Connecting to Qdrant at {self.qdrant_host}:{self.qdrant_port}...")
+        logger.info(
+            f"🔌 Connecting to Qdrant at {self.qdrant_host}:{self.qdrant_port}..."
+        )
 
         try:
             self.client = QdrantClient(host=self.qdrant_host, port=self.qdrant_port)
             logger.info("✅ Connected to Qdrant successfully!")
         except Exception as e:
             logger.warning(
-                f"⚠️ WARNING: Could not connect to Qdrant at {self.qdrant_host}:{self.qdrant_port}. Error: {e}")
+                f"⚠️ WARNING: Could not connect to Qdrant at {self.qdrant_host}:{self.qdrant_port}. Error: {e}"
+            )
 
         # 3. Load AI Model
-        self.model_name = self.config['model']['name']
+        self.model_name = self.config["model"]["name"]
         logger.info(f"🚀 Loading AI Model: {self.model_name}...")
 
         self.encoder = SentenceTransformer(self.model_name)
@@ -54,7 +58,7 @@ class InferencePipeline:
             search_result = self.client.search(
                 collection_name=self.collection_name,
                 query_vector=query_vector,
-                limit=top_k
+                limit=top_k,
             )
 
             # 3. FORMAT RESULTS
@@ -62,10 +66,10 @@ class InferencePipeline:
             for hit in search_result:
                 product_data = {
                     "score": hit.score,
-                    "product_name": hit.payload.get('prod_name', 'Unknown'),
-                    "description": hit.payload.get('detail_desc', ''),
-                    "category": hit.payload.get('product_group_name', 'Unknown'),
-                    "details": hit.payload
+                    "product_name": hit.payload.get("prod_name", "Unknown"),
+                    "description": hit.payload.get("detail_desc", ""),
+                    "category": hit.payload.get("product_group_name", "Unknown"),
+                    "details": hit.payload,
                 }
                 results.append(product_data)
 

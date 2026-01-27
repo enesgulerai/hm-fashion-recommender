@@ -1,13 +1,14 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
-from prometheus_fastapi_instrumentator import Instrumentator
-from contextlib import asynccontextmanager
-import uvicorn
-import redis
 import json
 import os
 import sys
+from contextlib import asynccontextmanager
+
 import numpy as np
+import redis
+import uvicorn
+from fastapi import FastAPI, HTTPException
+from prometheus_fastapi_instrumentator import Instrumentator
+from pydantic import BaseModel, Field
 
 # --- MODULE PATH SETTING ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -23,12 +24,14 @@ ml_pipeline = None
 redis_client = None
 config = read_config("config/config.yaml")
 
+
 # --- JSON FIX FOR NUMPY (CRITICAL FOR STABILITY) ---
 class NpEncoder(json.JSONEncoder):
     """
     The standard JSON library does not recognize Numpy numbers (float32, int64).
     This class converts them to standard Python numbers (float, int).
     """
+
     def default(self, obj):
         if isinstance(obj, np.integer):
             return int(obj)
@@ -37,6 +40,7 @@ class NpEncoder(json.JSONEncoder):
         if isinstance(obj, np.ndarray):
             return obj.tolist()
         return super(NpEncoder, self).default(obj)
+
 
 # --- LIFESPAN ---
 @asynccontextmanager
@@ -50,7 +54,9 @@ async def lifespan(app: FastAPI):
     # 1. REDIS CONNECTION
     redis_host = os.getenv("REDIS_HOST", "localhost")
     try:
-        redis_client = redis.Redis(host=redis_host, port=6379, db=0, decode_responses=True)
+        redis_client = redis.Redis(
+            host=redis_host, port=6379, db=0, decode_responses=True
+        )
         if redis_client.ping():
             logger.info(f"Redis Connection Established on {redis_host}!")
     except Exception as e:
@@ -62,7 +68,7 @@ async def lifespan(app: FastAPI):
     ml_pipeline = InferencePipeline()
     logger.info("Model and Qdrant DB Ready!")
 
-    yield # API works here
+    yield  # API works here
 
     # 3. CLEANING
     logger.info("API Shutting Down...")
@@ -76,7 +82,7 @@ app = FastAPI(
     title="H&M Fashion Recommender API",
     description="Production-ready API with Redis Caching & Prometheus Monitoring",
     version="2.1.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # --- MONITORING ---
@@ -91,6 +97,7 @@ class SearchRequest(BaseModel):
 
 # --- ENDPOINTS ---
 
+
 @app.get("/")
 def home():
     redis_status = "active" if redis_client and redis_client.ping() else "inactive"
@@ -98,7 +105,7 @@ def home():
         "status": "alive",
         "service": "H&M AI Recommender System",
         "redis_cache": redis_status,
-        "model": config['model']['name']
+        "model": config["model"]["name"],
     }
 
 
@@ -127,7 +134,7 @@ def recommend_products(request: SearchRequest):
         final_response = {
             "results": results,
             "source": "vector_db",
-            "count": len(results)
+            "count": len(results),
         }
 
         # --- 3. SAVING TO REDIS ---

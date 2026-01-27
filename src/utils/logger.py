@@ -16,10 +16,7 @@ logging_str = "[%(asctime)s] %(levelname)s: %(message)s"
 logging.basicConfig(
     level=logging.INFO,
     format=logging_str,
-    handlers=[
-        logging.FileHandler(LOG_FILE_PATH),
-        logging.StreamHandler(sys.stdout)
-    ]
+    handlers=[logging.FileHandler(LOG_FILE_PATH), logging.StreamHandler(sys.stdout)],
 )
 
 # 3. Create a Logger Object

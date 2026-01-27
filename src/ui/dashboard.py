@@ -1,6 +1,7 @@
-import streamlit as st
-import requests
 import os
+
+import requests
+import streamlit as st
 
 # --- SETTINGS ---
 BASE_URL = os.getenv("BACKEND_URL", "http://localhost:8001")
@@ -11,11 +12,7 @@ FULL_API_URL = f"{BASE_URL.rstrip('/')}{ENDPOINT}"
 
 
 # Page Configuration
-st.set_page_config(
-    page_title="H&M AI Fashion Stylist",
-    page_icon="🛍️",
-    layout="wide"
-)
+st.set_page_config(page_title="H&M AI Fashion Stylist", page_icon="🛍️", layout="wide")
 
 
 # --- TITLE & HEADER ---
@@ -29,15 +26,21 @@ Describe what you're looking for in natural language, and I'll find the perfect 
 # --- SIDEBAR ---
 with st.sidebar:
     st.header("⚙️ Settings")
-    top_k = st.slider("How many products should be brought?", min_value=1, max_value=10, value=3)
-    st.info("This system uses **Semantic Search**. It looks at the MEANING of words, not just their letters.")
+    top_k = st.slider(
+        "How many products should be brought?", min_value=1, max_value=10, value=3
+    )
+    st.info(
+        "This system uses **Semantic Search**. It looks at the MEANING of words, not just their letters."
+    )
 
 # --- MAIN SEARCH PART ---
-query = st.text_input("What kind of outfit are you looking for?", placeholder="Summer floral dress...")
+query = st.text_input(
+    "What kind of outfit are you looking for?", placeholder="Summer floral dress..."
+)
 search_btn = st.button("🔎 Find My Style")
 
 if search_btn and query:
-    with st.spinner('Artificial intelligence scans the wardrobe...'):
+    with st.spinner("Artificial intelligence scans the wardrobe..."):
         try:
             # Send Request to Backend
             payload = {"text": query, "top_k": top_k}
@@ -53,26 +56,38 @@ if search_btn and query:
                     st.warning("Sorry, I couldn't find anything suitable for this.")
                 else:
                     if source == "redis_cache":
-                        st.success(f"⚡ Found {len(results)} items (Loaded from Cache 🚀)!")
+                        st.success(
+                            f"⚡ Found {len(results)} items (Loaded from Cache 🚀)!"
+                        )
                     else:
-                        st.success(f"🐢 Found {len(results)} items (Processed by AI Model 🧠)!")
+                        st.success(
+                            f"🐢 Found {len(results)} items (Processed by AI Model 🧠)!"
+                        )
 
                     # List Results
                     for item in results:
                         with st.container():
                             col1, col2 = st.columns([1, 4])
 
-                            details = item.get('details', {})
+                            details = item.get("details", {})
 
                             with col1:
                                 st.markdown("# 👗")
-                                st.metric(label="Match Score", value=f"{item.get('score', 0):.4f}")
+                                st.metric(
+                                    label="Match Score",
+                                    value=f"{item.get('score', 0):.4f}",
+                                )
 
                             with col2:
-                                st.subheader(item.get('product_name', 'Unknown Product'))
+                                st.subheader(
+                                    item.get("product_name", "Unknown Product")
+                                )
                                 st.caption(
-                                    f"Category: {details.get('product_group_name', '-')} | Type: {details.get('product_type_name', '-')}")
-                                st.write(f"**Description:** {details.get('detail_desc', 'No description available.')}")
+                                    f"Category: {details.get('product_group_name', '-')} | Type: {details.get('product_type_name', '-')}"
+                                )
+                                st.write(
+                                    f"**Description:** {details.get('detail_desc', 'No description available.')}"
+                                )
                                 st.markdown("---")
 
             else:

@@ -1,14 +1,25 @@
-import requests
 import random
-import time
 import sys
+import time
+
+import requests
 
 URL = "http://localhost:8001/recommend"
 
 search_terms = [
-    "black dress", "blue jeans", "summer t-shirt", "leather jacket",
-    "running shoes", "white hoodie", "floral skirt", "denim shorts",
-    "winter coat", "red scarf", "gym wear", "office shirt", "silk pajamas"
+    "black dress",
+    "blue jeans",
+    "summer t-shirt",
+    "leather jacket",
+    "running shoes",
+    "white hoodie",
+    "floral skirt",
+    "denim shorts",
+    "winter coat",
+    "red scarf",
+    "gym wear",
+    "office shirt",
+    "silk pajamas",
 ]
 
 
@@ -28,7 +39,7 @@ def send_traffic():
             latency = (time.time() - start_time) * 1000
 
             if response.status_code == 200:
-                source = response.json().get('source', 'unknown')
+                source = response.json().get("source", "unknown")
                 print(f"[{counter}] ✅ '{query}' ({latency:.1f}ms) -> {source}")
             else:
                 print(f"[{counter}] ❌ Status: {response.status_code}")
