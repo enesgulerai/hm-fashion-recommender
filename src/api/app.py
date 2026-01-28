@@ -89,15 +89,22 @@ app = FastAPI(
 Instrumentator().instrument(app).expose(app)
 
 
-# --- Pydantic Models ---
+# --- Pydantic Models (FIXED FOR V2 WARNINGS) ---
 class SearchRequest(BaseModel):
-    text: str = Field(..., min_length=2, example="Black leather jacket")
-    top_k: int = Field(5, ge=1, le=20, example=5)
+    text: str = Field(
+        ...,
+        min_length=2,
+        json_schema_extra={"example": "Black leather jacket"}
+    )
+    top_k: int = Field(
+        5,
+        ge=1,
+        le=20,
+        json_schema_extra={"example": 5}
+    )
 
 
 # --- ENDPOINTS ---
-
-
 @app.get("/")
 def home():
     redis_status = "active" if redis_client and redis_client.ping() else "inactive"
@@ -110,7 +117,7 @@ def home():
 
 
 @app.post("/recommend")
-def recommend_products(request: SearchRequest):
+async def recommend_products(request: SearchRequest):
     """
     Returns similar products using Redis Caching + Vector Search Pipeline.
     """
@@ -122,7 +129,7 @@ def recommend_products(request: SearchRequest):
         if redis_client:
             cached_result = redis_client.get(cache_key)
             if cached_result:
-                logger.info(f"⚡ CACHE HIT for '{normalized_text}'")
+                logger.info(f"CACHE HIT for '{normalized_text}'")
                 return json.loads(cached_result)
 
         # --- 2. PIPELINE CALL (CACHE MISS) ---

@@ -1,5 +1,4 @@
 from unittest.mock import patch
-
 import pytest
 
 
@@ -19,21 +18,25 @@ def test_recommend_endpoint_success(client):
     Scenario: User sends valid text.
     Expected: 200 OKs and a list of results.
     """
-    # We're mocking Pipeline and Redis (so it doesn't make a real connection).
+    # 1. Pipeline Mock (Model Kısmı)
     with patch("src.api.app.ml_pipeline") as mock_pipeline:
-        # We are setting what the pipeline will return.
         mock_pipeline.search_products.return_value = [
             {"product_name": "Mock Dress", "score": 0.99}
         ]
 
-        payload = {"text": "Red dress", "top_k": 3}
-        response = client.post("/recommend", json=payload)
+        # 2. Redis Mock
+        with patch("src.api.app.redis_client") as mock_redis:
+            mock_redis.get.return_value = None
 
-        assert response.status_code == 200
-        data = response.json()
-        assert "results" in data
-        assert len(data["results"]) > 0
-        assert data["results"][0]["product_name"] == "Mock Dress"
+            payload = {"text": "Red dress", "top_k": 3}
+            response = client.post("/recommend", json=payload)
+
+            assert response.status_code == 200
+            data = response.json()
+            assert "results" in data
+            assert len(data["results"]) > 0
+            assert data["results"][0]["product_name"] == "Mock Dress"
+            assert data["source"] == "vector_db"
 
 
 def test_recommend_endpoint_invalid_input(client):

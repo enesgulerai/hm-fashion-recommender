@@ -1,7 +1,6 @@
 import os
 import sys
-from unittest.mock import MagicMock
-
+from unittest.mock import MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
@@ -10,31 +9,32 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.api.app import app
 
 
-# 2. Test Client Fixture
+# 1. Mock Pipeline Fixture
 @pytest.fixture
-def client():
+def mock_pipeline_instance():
     """
-    Creates a Test Client for the FastAPI application.
+    Bu, Pipeline SINIFININ üreteceği sahte NESNE (Instance).
     """
-    return TestClient(app)
-
-
-# 3. Mock Pipeline Fixture
-@pytest.fixture
-def mock_pipeline():
-    """
-    Instead of loading the real Qdrant and AI model, it returns a mock pipeline.
-    This allows tests to run faster.
-    """
-    mock = MagicMock()
-    # a fake answer that will be returned when the search_products function is called
-    mock.search_products.return_value = [
+    mock_instance = MagicMock()
+    mock_instance.search_products.return_value = [
         {
             "score": 0.95,
             "product_name": "Test Red Dress",
             "description": "A beautiful red dress",
             "category": "Dresses",
             "details": {"product_type_name": "Dress"},
+            "image_url": "http://example.com/image.jpg"
         }
     ]
-    return mock
+    return mock_instance
+
+
+# 2. Test Client Fixture
+@pytest.fixture
+def client(mock_pipeline_instance):
+    with patch("src.api.app.InferencePipeline") as MockPipelineClass:
+        MockPipelineClass.return_value = mock_pipeline_instance
+
+        with patch("src.api.app.redis.Redis"):
+            with TestClient(app) as c:
+                yield c
