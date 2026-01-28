@@ -1,27 +1,54 @@
-# Git
+# --- Git & CI/CD ---
 .git
 .gitignore
+.github/
+.gitlab-ci.yml
 
-# Python Cache & Environment
+# --- Docker & Deploy Configs ---
+Dockerfile
+docker-compose.yml
+docker-compose.*.yml
+.dockerignore
+
+# --- Python Cache & Environment ---
 __pycache__
-*.pyc
-*.pyo
-*.pyd
+**/*.pyc
+**/*.pyo
+**/*.pyd
 .Python
 env/
 venv/
-.env
+.venv/
+pip-wheel-metadata/
 
-# Data & Storage
+# --- Environment Variables (Security) ---
+.env
+.env.*
+
+# --- Data & Storage (Heavy Files) ---
 data/
 qdrant_storage/
 logs/
-notebooks/
-tests/
-docs/
 mlruns/
 mlartifacts/
+models/
+*.db
+*.sqlite3
 
-# IDE
+# --- Documentation & Notebooks ---
+notebooks/
+docs/
+*.md
+LICENSE
+
+# --- Testing ---
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- IDE & System Junk ---
 .idea/
 .vscode/
+.DS_Store
+Thumbs.db

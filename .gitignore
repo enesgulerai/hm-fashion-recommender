@@ -1,12 +1,54 @@
+# --- Python Core & Cache ---
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# --- Virtual Environments ---
 .venv/
 venv/
 ENV/
+env/
+
+# --- Environment Variables (Security) ---
 .env
+.env.local
+.env.*
+!.env.example
+
+# --- IDE & OS Junk ---
 .idea/
 .vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# --- Data & Logs ---
 data/
-qdrant_storage/
-*.pyc
 logs/
 *.log
+qdrant_storage/
+
+# --- Jupyter Notebooks ---
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# --- ML & Models (Safety Net) ---
+models/
+checkpoints/
+*.pt
+*.pth
+*.onnx
+*.bin
+*.h5
+*.pkl
+wandb/
+
+# --- Testing & Builds ---
+.pytest_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+.mypy_cache/
