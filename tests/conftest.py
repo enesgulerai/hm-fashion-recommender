@@ -1,6 +1,7 @@
 import os
 import sys
 from unittest.mock import MagicMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -23,7 +24,7 @@ def mock_pipeline_instance():
             "description": "A beautiful red dress",
             "category": "Dresses",
             "details": {"product_type_name": "Dress"},
-            "image_url": "http://example.com/image.jpg"
+            "image_url": "http://example.com/image.jpg",
         }
     ]
     return mock_instance

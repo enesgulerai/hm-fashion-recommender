@@ -92,16 +92,9 @@ Instrumentator().instrument(app).expose(app)
 # --- Pydantic Models (FIXED FOR V2 WARNINGS) ---
 class SearchRequest(BaseModel):
     text: str = Field(
-        ...,
-        min_length=2,
-        json_schema_extra={"example": "Black leather jacket"}
+        ..., min_length=2, json_schema_extra={"example": "Black leather jacket"}
     )
-    top_k: int = Field(
-        5,
-        ge=1,
-        le=20,
-        json_schema_extra={"example": 5}
-    )
+    top_k: int = Field(5, ge=1, le=20, json_schema_extra={"example": 5})
 
 
 # --- ENDPOINTS ---
