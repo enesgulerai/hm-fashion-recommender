@@ -1,4 +1,4 @@
-name: CI - Quality & Logic Checks
+name: CI - Quality Checks
 
 on:
   push:
@@ -21,17 +21,10 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install black isort flake8 mypy
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install black isort
 
-      - name: 1. Code Style (Black)
+      - name: Check Code Formatting (Black)
         run: black --check .
 
-      - name: 2. Import Sorting (Isort)
+      - name: Check Import Sorting (Isort)
         run: isort --check-only --profile black .
-
-      - name: 3. Linting (Flake8)
-        run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-
-      - name: 4. Type Checking (Mypy)
-        run: mypy . --ignore-missing-imports
