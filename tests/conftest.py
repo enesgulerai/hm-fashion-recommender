@@ -14,7 +14,7 @@ from src.api.app import app
 @pytest.fixture
 def mock_pipeline_instance():
     """
-    Bu, Pipeline SINIFININ üreteceği sahte NESNE (Instance).
+    This is the fake OBJECT (Instance) that the Pipeline CLASS will produce.
     """
     mock_instance = MagicMock()
     mock_instance.search_products.return_value = [

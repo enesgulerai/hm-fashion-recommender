@@ -19,7 +19,7 @@ def test_recommend_endpoint_success(client):
     Scenario: User sends valid text.
     Expected: 200 OKs and a list of results.
     """
-    # 1. Pipeline Mock (Model Kısmı)
+    # 1. Pipeline Mock
     with patch("src.api.app.ml_pipeline") as mock_pipeline:
         mock_pipeline.search_products.return_value = [
             {"product_name": "Mock Dress", "score": 0.99}
