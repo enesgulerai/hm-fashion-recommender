@@ -32,8 +32,12 @@ jobs:
             echo "Fetching latest changes from Git..."
             git pull origin main
 
-            echo "Starting deployment..."
-            docker-compose up --build -d
+            echo "FIX: Downloading standalone Docker Compose V2..."
+            curl -SL https://github.com/docker/compose/releases/download/v2.29.1/docker-compose-linux-x86_64 -o ./docker-compose
+            chmod +x ./docker-compose
+
+            echo "Starting deployment with Docker Compose V2..."
+            ./docker-compose up --build -d
 
             echo "Performing safe cleanup..."
             docker image prune -f
