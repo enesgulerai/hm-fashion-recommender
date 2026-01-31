@@ -23,21 +23,21 @@ jobs:
           timeout: 30s
           command_timeout: 30m
           script: |
-            # Exit immediately if a command exits with a non-zero status
             set -e
-
-            # Navigate to project directory
             cd /home/ubuntu/hm-fashion-recommender
 
-            echo "Fetching latest changes from Git..."
+            echo "📥 Fetching latest code..."
             git pull origin main
 
-            echo "FIX: Downloading standalone Docker Compose V2..."
+            echo "🛠️ Ensuring Docker Compose V2..."
             curl -SL https://github.com/docker/compose/releases/download/v2.29.1/docker-compose-linux-x86_64 -o ./docker-compose
             chmod +x ./docker-compose
 
-            echo "Starting deployment with Docker Compose V2..."
-            ./docker-compose up --build -d
+            echo "🧹 Cleaning up OLD containers (Fixing Conflicts)..."
+            ./docker-compose down --remove-orphans || true
 
-            echo "Performing safe cleanup..."
+            echo "🚀 Starting Deployment (This might be slow ONLY ONCE)..."
+            ./docker-compose up -d --build
+
+            echo "✨ Cleaning up dangling images..."
             docker image prune -f
