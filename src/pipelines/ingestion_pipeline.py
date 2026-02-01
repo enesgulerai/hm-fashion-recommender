@@ -1,6 +1,6 @@
 import os
 import sys
-
+import gdown
 import pandas as pd
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
@@ -8,6 +8,7 @@ from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 
 # Relative import to access the config reader
+# NOTE: Run this script as a module: python -m src.pipelines.ingestion_pipeline
 from ..utils.common import read_config
 
 
@@ -15,26 +16,23 @@ class IngestionPipeline:
     def __init__(self, config_path="config/config.yaml"):
         """
         Initializes the Ingestion Pipeline.
-        It loads configuration, connects to Qdrant, and initializes the embedding model.
-        Hybrid Config: Prioritizes Environment Variables (Docker) over config.yaml.
+        Loads configuration, sets up paths, connects to Qdrant, and initializes the embedding model.
         """
-        # 1. Load Configuration
         self.config = read_config(config_path)
 
-        # 2. Setup Paths
         self.base_dir = os.path.dirname(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         )
+        self.raw_data_dir = os.path.join(self.base_dir, self.config["paths"]["raw_data"])
+
         self.articles_path = os.path.join(
-            self.base_dir,
-            self.config["paths"]["raw_data"],
+            self.raw_data_dir,
             self.config["files"]["articles"],
         )
 
-        # 3. Setup Qdrant Client (CRITICAL FIX 🛠️)
+        # Docker environment variable priority
         self.qdrant_host = os.getenv("QDRANT_HOST", self.config["qdrant"]["host"])
         self.qdrant_port = int(os.getenv("QDRANT_PORT", self.config["qdrant"]["port"]))
-
         self.collection_name = self.config["qdrant"]["collection_name"]
         self.vector_size = self.config["qdrant"]["vector_size"]
 
@@ -42,50 +40,64 @@ class IngestionPipeline:
 
         try:
             self.client = QdrantClient(host=self.qdrant_host, port=self.qdrant_port)
-            print("✅ Connection object created.")
+            # Check connection by listing collections
+            self.client.get_collections()
+            print("✅ Connection established successfully.")
         except Exception as e:
-            print(f"❌ Failed to initialize Qdrant Client: {e}")
+            print(f"❌ Failed to connect to Qdrant. Is Docker running? Error: {e}")
             raise e
 
-        # 4. Load AI Model
         self.model_name = self.config["model"]["name"]
         print(f"🚀 Loading Embedding Model: {self.model_name}...")
         self.encoder = SentenceTransformer(self.model_name)
 
-    def run_pipeline(self, limit=None):
+    def _download_data_if_needed(self):
         """
-        Executes the ingestion process:
-        1. Reads article data.
-        2. Preprocesses text fields.
-        3. Encodes text into vectors.
-        4. Uploads vectors and payloads to Qdrant.
+        Checks if the CSV exists locally. If not, downloads it from Google Drive.
+        """
+        if os.path.exists(self.articles_path):
+            print(f"✅ CSV Data found at: {self.articles_path}")
+            return
 
-        Args:
-            limit (int, optional): If provided, limits the number of rows processed.
-        """
+        print(f"⚠️ Data NOT found at {self.articles_path}. Starting automatic download...")
+        os.makedirs(self.raw_data_dir, exist_ok=True)
+
+        file_id = '1w52TQfKYfdDuASM1qMoIJHhxbHogvJKJ'
+        url = f'https://drive.google.com/uc?id={file_id}'
+
         try:
-            print(f"📂 Reading Data from: {self.articles_path}")
+            print("⏳ Downloading CSV from Google Drive...")
+            gdown.download(url, self.articles_path, quiet=False)
+            print(f"🎉 Download complete! Saved to {self.articles_path}")
+        except Exception as e:
+            print(f"❌ Download failed. Check internet/Drive ID. Error: {e}")
+            if os.path.exists(self.articles_path):
+                os.remove(self.articles_path)
+            raise e
 
-            if not os.path.exists(self.articles_path):
-                raise FileNotFoundError(f"Data file not found at: {self.articles_path}")
+    def run_pipeline(self, limit=None):
+        try:
+            self._download_data_if_needed()
 
-            df = pd.read_csv(self.articles_path)
+            print(f"📖 Reading CSV data from: {self.articles_path}")
+
+            try:
+                df = pd.read_csv(self.articles_path)
+            except UnicodeDecodeError:
+                print("⚠️ UTF-8 failed. Trying 'latin1' encoding...")
+                df = pd.read_csv(self.articles_path, encoding='latin1')
 
             # --- PREPROCESSING ---
-            # Fill missing values to prevent errors during embedding
             df["detail_desc"] = df["detail_desc"].fillna("")
             df["prod_name"] = df["prod_name"].fillna("Unknown Product")
 
-            # If a limit is set (e.g., for testing), slice the dataframe
             if limit:
-                print(f"⚠️ Limiting data to first {limit} rows.")
+                print(f"⚠️ Limiting data to first {limit} rows for testing.")
                 df = df.head(limit)
 
-            # Feature Engineering: Combine title and description for richer embeddings
             documents = (df["prod_name"] + ": " + df["detail_desc"]).tolist()
             ids = df["article_id"].tolist()
 
-            # Prepare Metadata (Payload) for Qdrant
             payloads = df[
                 [
                     "prod_name",
@@ -96,16 +108,20 @@ class IngestionPipeline:
                 ]
             ].to_dict(orient="records")
 
-            # --- QDRANT SETUP ---
-            # Recreate collection to ensure a fresh start
-            print(f"♻️ Recreating collection '{self.collection_name}'...")
-            self.client.recreate_collection(
+            # --- QDRANT SETUP (MODERN METHOD) ---
+            print(f"♻️ Checking collection '{self.collection_name}'...")
+
+            if self.client.collection_exists(self.collection_name):
+                self.client.delete_collection(self.collection_name)
+                print(f"🗑️ Deleted existing collection '{self.collection_name}'")
+
+            self.client.create_collection(
                 collection_name=self.collection_name,
                 vectors_config=models.VectorParams(
                     size=self.vector_size, distance=models.Distance.COSINE
-                ),
+                )
             )
-            print(f"✅ Collection '{self.collection_name}' created/reset successfully.")
+            print(f"✅ Collection '{self.collection_name}' created successfully.")
 
             # --- BATCH UPLOAD ---
             batch_size = 250
@@ -113,19 +129,16 @@ class IngestionPipeline:
 
             print("📡 Starting Vector Ingestion...")
             for i in tqdm(
-                range(0, len(documents), batch_size),
-                total=total_batches,
-                desc="Uploading to Qdrant",
+                    range(0, len(documents), batch_size),
+                    total=total_batches,
+                    desc="Uploading to Qdrant",
             ):
-                # Slice batches
-                batch_docs = documents[i : i + batch_size]
-                batch_ids = ids[i : i + batch_size]
-                batch_payloads = payloads[i : i + batch_size]
+                batch_docs = documents[i: i + batch_size]
+                batch_ids = ids[i: i + batch_size]
+                batch_payloads = payloads[i: i + batch_size]
 
-                # Generate Embeddings
                 embeddings = self.encoder.encode(batch_docs).tolist()
 
-                # Create Points
                 points = [
                     models.PointStruct(id=idx, vector=vector, payload=payload)
                     for idx, vector, payload in zip(
@@ -133,7 +146,6 @@ class IngestionPipeline:
                     )
                 ]
 
-                # Upload Batch
                 self.client.upsert(collection_name=self.collection_name, points=points)
 
             print(
@@ -146,7 +158,6 @@ class IngestionPipeline:
 
 
 if __name__ == "__main__":
-    # Test run (limiting to 5000 rows for speed)
     print("🚀 Starting Ingestion Pipeline...")
     pipeline = IngestionPipeline()
-    pipeline.run_pipeline(limit=5000)  # You can remove the limit to process all data
+    pipeline.run_pipeline()

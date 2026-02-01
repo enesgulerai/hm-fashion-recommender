@@ -4,5 +4,6 @@
 -r src/ui/requirements.txt
 
 pytest==8.0.0
-black
-isort
+black==26.1.0
+isort==7.0.0
+gdown==5.2.1
