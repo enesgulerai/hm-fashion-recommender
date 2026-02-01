@@ -66,22 +66,20 @@ You don't need to install Python or libraries manually. Just use Docker.
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/enesgulerml/hm-fashion-recommender.git
-cd hm-fashion-recommender
+    git clone https://github.com/enesgulerml/hm-fashion-recommender.git
+    cd hm-fashion-recommender
 ```
 
-### 2. Download Dataset
-**Important:** Due to the large file size, the dataset is not included in this repository.
-
-1. Download Here: 👉 Kaggle: [H&M Personalized Fashion Recommendations](https://www.kaggle.com/competitions/h-and-m-personalized-fashion-recommendations/data)
-2. Extract articles.csv and place it in the data/raw/ folder. 
-   * Path should be: data/raw/articles.csv
-
-### 3. Run the System
+### 2. Run the System
+We have automated the entire process (Data Download -> Embedding -> Vector DB Indexing).
 ```bash
-# Start all services (The DB will initialize automatically)
-docker-compose up -d --build
+    make run
 ```
+**Note:** If you don't have make installed (e.g., standard Windows CMD), you can use the raw command:
+```bash
+    docker-compose up -d --build
+```
+
 
 ## 🛠️ Tech Stack & Engineering Decisions
 
@@ -132,7 +130,7 @@ The project includes a robust integration and unit test suite using **Pytest**. 
 #### 1. **Setup a Virtual Environment:**
    We use standard python `venv` for isolation.
 
-   ```bash
+```bash
    # 1. Create the virtual environment (.venv)
    python -m venv .venv
 
@@ -144,11 +142,11 @@ The project includes a robust integration and unit test suite using **Pytest**. 
 
    # 3. Install dependencies (Resolving conflicts between API & UI)
    pip install -r src/api/requirements.txt -r src/ui/requirements.txt -r requirements.txt
-   ```
+```
 
 #### 2. Execute the Test Suite:
 ```bash
-pytest tests/ -v
+    pytest tests/ -v
 ```
 
 **Test Coverage:**
@@ -158,15 +156,10 @@ pytest tests/ -v
 * ✅ Input Validation: Ensures the API handles invalid or too short queries correctly (HTTP 422). 
 * ✅ Pipeline Flow: Mocks the Embedding Model and Qdrant client to verify the internal data transformation flow.
 
-## 🛑 Stopping the System
-To stop the services while **preserving** the database data:
+## 🛑 Stop the System
+To stop all services and clean up:
 ```bash
-docker-compose down
-```
-
-To stop the services and delete everything (clean start):
-```bash
-docker-compose down --rmi all -v
+    make stop
 ```
 
 ## 👨‍💻 Author
