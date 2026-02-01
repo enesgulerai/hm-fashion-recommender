@@ -1,5 +1,6 @@
 import os
 import sys
+
 import gdown
 import pandas as pd
 from qdrant_client import QdrantClient
@@ -23,7 +24,9 @@ class IngestionPipeline:
         self.base_dir = os.path.dirname(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         )
-        self.raw_data_dir = os.path.join(self.base_dir, self.config["paths"]["raw_data"])
+        self.raw_data_dir = os.path.join(
+            self.base_dir, self.config["paths"]["raw_data"]
+        )
 
         self.articles_path = os.path.join(
             self.raw_data_dir,
@@ -59,11 +62,13 @@ class IngestionPipeline:
             print(f"✅ CSV Data found at: {self.articles_path}")
             return
 
-        print(f"⚠️ Data NOT found at {self.articles_path}. Starting automatic download...")
+        print(
+            f"⚠️ Data NOT found at {self.articles_path}. Starting automatic download..."
+        )
         os.makedirs(self.raw_data_dir, exist_ok=True)
 
-        file_id = '1w52TQfKYfdDuASM1qMoIJHhxbHogvJKJ'
-        url = f'https://drive.google.com/uc?id={file_id}'
+        file_id = "1w52TQfKYfdDuASM1qMoIJHhxbHogvJKJ"
+        url = f"https://drive.google.com/uc?id={file_id}"
 
         try:
             print("⏳ Downloading CSV from Google Drive...")
@@ -85,7 +90,7 @@ class IngestionPipeline:
                 df = pd.read_csv(self.articles_path)
             except UnicodeDecodeError:
                 print("⚠️ UTF-8 failed. Trying 'latin1' encoding...")
-                df = pd.read_csv(self.articles_path, encoding='latin1')
+                df = pd.read_csv(self.articles_path, encoding="latin1")
 
             # --- PREPROCESSING ---
             df["detail_desc"] = df["detail_desc"].fillna("")
@@ -119,7 +124,7 @@ class IngestionPipeline:
                 collection_name=self.collection_name,
                 vectors_config=models.VectorParams(
                     size=self.vector_size, distance=models.Distance.COSINE
-                )
+                ),
             )
             print(f"✅ Collection '{self.collection_name}' created successfully.")
 
@@ -129,13 +134,13 @@ class IngestionPipeline:
 
             print("📡 Starting Vector Ingestion...")
             for i in tqdm(
-                    range(0, len(documents), batch_size),
-                    total=total_batches,
-                    desc="Uploading to Qdrant",
+                range(0, len(documents), batch_size),
+                total=total_batches,
+                desc="Uploading to Qdrant",
             ):
-                batch_docs = documents[i: i + batch_size]
-                batch_ids = ids[i: i + batch_size]
-                batch_payloads = payloads[i: i + batch_size]
+                batch_docs = documents[i : i + batch_size]
+                batch_ids = ids[i : i + batch_size]
+                batch_payloads = payloads[i : i + batch_size]
 
                 embeddings = self.encoder.encode(batch_docs).tolist()
 
