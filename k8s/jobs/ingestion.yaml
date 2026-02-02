@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: etl-ingestion
+spec:
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      containers:
+      - name: etl
+        image: hm-etl:latest
+        imagePullPolicy: Never
+        command: ["python", "-m", "src.pipelines.ingestion_pipeline"]
+        envFrom:
+        - configMapRef:
+            name: hm-config
+        volumeMounts:
+        - name: temp-data
+          mountPath: /app/data
+      restartPolicy: OnFailure
+      volumes:
+      - name: temp-data
+        emptyDir: {}
