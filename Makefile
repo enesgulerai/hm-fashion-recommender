@@ -14,6 +14,7 @@ help:
 	@echo "  make run    : Initializes the entire system (Infra + ETL + App)."
 	@echo "  make stop   : It stops everything and cleans it up."
 	@echo "  make logs   : It monitors the logs live."
+	@echo "  make test   : It runs unit tests."
 	@echo "  make prune  : It deletes any leftover Docker images."
 	@echo "  make clean  : Clears cache files."
 	@echo "======================================================================"
@@ -49,3 +50,7 @@ clean:
 	@echo "Cleaning up bytecode and cache..."
 	@python -c "import pathlib, shutil; [shutil.rmtree(p) for p in pathlib.Path('.').rglob('__pycache__')]; [p.unlink() for p in pathlib.Path('.').rglob('*.pyc')]; [shutil.rmtree(p) for p in pathlib.Path('.').rglob('.pytest_cache') if p.exists()]"
 	@echo "Clean complete."
+
+test:
+	@echo "Running unit tests..."
+	pytest tests/
