@@ -102,10 +102,12 @@ Instead of Docker Compose, you can deploy the entire stack to a local Kubernetes
    make k8s-deploy
    ```
 Access the UI at: http://localhost:30001
+
 2. **Ingest Data (ETL Job):** Run the data ingestion pipeline as a Kubernetes Job:
     ```bash
     make k8s-ingest
     ```
+ 
 3. **Teardown:** To remove all resources (Deployments, Services, PVCs):
     ```bash
     make k8s-stop
