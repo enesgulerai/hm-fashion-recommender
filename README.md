@@ -54,6 +54,8 @@ graph LR
 * redis: In-memory key-value store for caching search results.
 * etl-worker: An automated service that runs on startup to ingest & embed data if the DB is empty.
 
+---
+
 ## 📊 System Monitoring
 Real-time API metrics tracked via **Prometheus** and visualized on **Grafana**.
 - **Left:** Average Latency (~2ms response time thanks to Redis caching).
@@ -61,7 +63,9 @@ Real-time API metrics tracked via **Prometheus** and visualized on **Grafana**.
 
 ![Dashboard](docs/images/dashboard.png)
 
-## 🚀 Quick Start
+---
+
+## 🚀 Quick Start (Docker)
 You don't need to install Python or libraries manually. Just use Docker.
 
 ### 1. Clone the Repository
@@ -80,6 +84,35 @@ We have automated the entire process (Data Download -> Embedding -> Vector DB In
     docker-compose up -d --build
 ```
 
+---
+
+## ☸️ Kubernetes Deployment (Production-Ready)
+
+This project includes fully configured Kubernetes manifests for scalable deployment.
+
+### Prerequisites
+- Docker Desktop (with Kubernetes enabled) OR Minikube
+- `kubectl` CLI installed
+
+### Quick Start with K8s
+Instead of Docker Compose, you can deploy the entire stack to a local Kubernetes cluster:
+
+1. **Deploy the System:**
+   ```bash
+   make k8s-deploy
+   ```
+Access the UI at: http://localhost:30001
+2. **Ingest Data (ETL Job):** Run the data ingestion pipeline as a Kubernetes Job:
+    ```bash
+    make k8s-ingest
+    ```
+3. **Teardown:** To remove all resources (Deployments, Services, PVCs):
+    ```bash
+    make k8s-stop
+    ```
+
+---
+
 
 ## 🛠️ Tech Stack & Engineering Decisions
 
@@ -92,24 +125,27 @@ We have automated the entire process (Data Download -> Embedding -> Vector DB In
 | **Data Proc** | **Pandas (Chunking)** | Implemented memory-efficient chunking strategies to process large datasets without OOM errors. |
 | **Monitoring** | **Prometheus/Grafana** | Added to track API health, throughput, and latency in a production simulation. |
 
+---
+
 ## 📂 Project Structure
 
 ```text
 ├── config/             # Centralized configuration (YAML)
-├── data/               # Raw and processed data (GitIgnored)
-├── monitoring/         # Grafana & Prometheus configs
+├── .github/            # CI/CD Operations
+├── k8s/                # Kubernetes Operations
 ├── src/
 │   ├── api/            # FastAPI application (app.py)
 │   ├── ui/             # Streamlit Dashboard (dashboard.py)
 │   ├── pipelines/      # Logic for Inference & Ingestion
-│   │   ├── inference_pipeline.py
-│   │   └── ingestion_pipeline.py
 │   └── utils/          # Logger & Helper functions
 ├── tests/              # Pytest integration tests
 ├── docker-compose.yml  # Orchestration of services
-├── Dockerfile.api      # Optimized Multi-Stage Dockerfile
+├── Dockerfile.api      # Optimized Multi-Stage Dockerfile for API
+├── Dockerfile.frontend # Optimized Multi-Stage Dockerfile for Frontend
 └── README.md           # Documentation
 ```
+
+---
 
 ## 🔗 Service Access Points (Quick Links)
 Once Docker is running, you can access all microservices via these links:
@@ -121,32 +157,14 @@ Once Docker is running, you can access all microservices via these links:
 | 📊 **Grafana** | [**http://localhost:3001**](http://localhost:3001) | `admin` / `admin` | Real-time dashboards for metrics visualization. |
 | 📈 **Prometheus** | [**http://localhost:9091**](http://localhost:9091) | - | Raw metrics scraping and querying interface. |
 
-## 🧪 Testing
+---
 
-The project includes a robust integration and unit test suite using **Pytest**. To ensure a clean test environment without affecting your main system, we use **Mocking** for external services (Qdrant, Redis). This allows tests to run instantly without requiring Docker to be active.
-
-### How to Run Tests Locally:
-
-#### 1. **Setup a Virtual Environment:**
-   We use standard python `venv` for isolation.
+## 🧪 Running Tests
+You don't need to install Python or dependencies locally. The test suite runs inside a Docker container to ensure consistency across all environments.
 
 ```bash
-   # 1. Create the virtual environment (.venv)
-   python -m venv .venv
-
-   # 2. Activate the environment
-   # On Windows (PowerShell):
-   .\.venv\Scripts\Activate.ps1
-   # On macOS/Linux:
-   source .venv/bin/activate
-
-   # 3. Install dependencies (Resolving conflicts between API & UI)
-   pip install -r src/api/requirements.txt -r src/ui/requirements.txt -r requirements.txt
-```
-
-#### 2. Execute the Test Suite:
-```bash
-    pytest tests/ -v
+    # Run unit tests inside Docker
+    make test
 ```
 
 **Test Coverage:**
@@ -155,6 +173,8 @@ The project includes a robust integration and unit test suite using **Pytest**. 
 * ✅ Recommendation Logic: Simulates a user query and validates the mapping of search results. 
 * ✅ Input Validation: Ensures the API handles invalid or too short queries correctly (HTTP 422). 
 * ✅ Pipeline Flow: Mocks the Embedding Model and Qdrant client to verify the internal data transformation flow.
+
+---
 
 ## 🛑 Stop the System
 To stop all services and clean up:
