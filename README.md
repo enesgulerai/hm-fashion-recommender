@@ -161,6 +161,26 @@ Once Docker is running, you can access all microservices via these links:
 
 ---
 
+## ☁️ Deployment & Live Demo
+
+This project is deployed on **AWS EC2** using **Kubernetes (K3s)**.
+The infrastructure creates a scalable environment for the ML model and vector database.
+
+### 🚀 Live Preview
+![App Demo](docs/aws/hm-aws-streamlit.gif)
+
+### 🏗️ Infrastructure Details
+* **Cloud Provider:** AWS (eu-central-1)
+* **Instance Type:** t3.small
+* **Orchestration:** K3s (Lightweight Kubernetes)
+* **Networking:** NodePort Service exposed on port `30001`
+
+| AWS Instance | Security Configuration |
+| :---: | :---: |
+| ![AWS EC2 Instance](docs/aws/hm-aws-instance.png) | ![AWS Security Groups](docs/aws/hm-aws-inbound-rules.png) |
+
+---
+
 ## 🧪 Running Tests
 You don't need to install Python or dependencies locally. The test suite runs inside a Docker container to ensure consistency across all environments.
 
