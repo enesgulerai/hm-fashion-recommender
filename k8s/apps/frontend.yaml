@@ -15,7 +15,7 @@ spec:
       containers:
       - name: frontend
         image: hm-frontend:latest
-        imagePullPolicy: Never
+        imagePullPolicy: Always
         ports:
         - containerPort: 8501
         envFrom:

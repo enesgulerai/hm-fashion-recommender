@@ -9,7 +9,7 @@ spec:
       containers:
       - name: etl
         image: hm-etl:latest
-        imagePullPolicy: Never
+        imagePullPolicy: Always
         command: ["python", "-m", "src.pipelines.ingestion_pipeline"]
         envFrom:
         - configMapRef:

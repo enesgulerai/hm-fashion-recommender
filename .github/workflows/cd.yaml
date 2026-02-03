@@ -1,4 +1,4 @@
-name: CD - Deploy to K3s (AWS)
+name: CD - Build & Deploy
 
 on:
   push:
@@ -7,58 +7,67 @@ on:
     paths-ignore:
       - 'README.md'
       - 'docs/**'
-      - '.gitignore'
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Deploy to AWS EC2 via SSH
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # --- BACKEND BUILD & PUSH ---
+      - name: Build and Push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.api
+          push: true
+          tags: enesgulerml/hm-backend:latest
+          cache-from: type=registry,ref=enesgulerml/hm-backend:latest
+          cache-to: type=inline
+
+      # --- FRONTEND BUILD & PUSH ---
+      - name: Build and Push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.frontend
+          push: true
+          tags: enesgulerml/hm-frontend:latest
+          cache-from: type=registry,ref=enesgulerml/hm-frontend:latest
+          cache-to: type=inline
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to AWS via SSH
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
-          timeout: 20m
-          command_timeout: 40m
           script: |
-            set -e
-            cd /home/ubuntu/hm-fashion-recommender
+            echo "Starting Deployment..."
             
-            echo "📥 Pulling latest code..."
+            cd /home/ubuntu/hm-fashion-recommender
             git pull origin main
             
-            # --- BACKEND ---
-            echo "Building Backend..."
-            docker build -t hm-backend:latest -f Dockerfile.api .
+
+            kubectl apply -f k8s/apps/
             
-            echo "Importing Backend to K3s..."
-            docker save hm-backend:latest | sudo k3s ctr images import -
+            echo "Rolling out restart..."
+            kubectl rollout restart deployment backend
+            kubectl rollout restart deployment frontend
             
-            echo "Cleaning Backend Artifacts..."
-            docker rmi hm-backend:latest
-            
-            echo "Cooldown (30s)..."
-            sleep 30
-            
-            # --- FRONTEND ---
-            echo "Building Frontend..."
-            docker build -t hm-frontend:latest -f Dockerfile.frontend .
-            
-            echo "Importing Frontend to K3s..."
-            docker save hm-frontend:latest | sudo k3s ctr images import -
-            
-            echo "Cleaning Frontend Artifacts..."
-            docker rmi hm-frontend:latest
-            
-            echo "Final Cooldown (30s)..."
-            sleep 30
-            
-            # --- RESTART ---
-            echo "Restarting Kubernetes Deployments..."
-            sudo kubectl rollout restart deployment backend
-            sudo kubectl rollout restart deployment frontend
-            
-            echo "Deployment Successful!"
+            echo "Deployment Triggered! Watch pods with: kubectl get pods -w"
