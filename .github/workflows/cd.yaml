@@ -1,43 +1,49 @@
-name: CD - Deploy H&M App to EC2
+name: CD - Deploy to K3s (AWS)
 
 on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**'
+      - '.gitignore'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Deploy to EC2
+      - name: Deploy to AWS EC2 via SSH
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
-          timeout: 30s
+          timeout: 10m
           command_timeout: 30m
           script: |
+            # 1. Go to the folder and catch the errors.
             set -e
             cd /home/ubuntu/hm-fashion-recommender
-
-            echo "📥 Fetching latest code..."
+            
+            # 2. Check the latest code
+            echo "Pulling latest code..."
             git pull origin main
-
-            echo "🛠️ Ensuring Docker Compose V2..."
-            curl -SL https://github.com/docker/compose/releases/download/v2.29.1/docker-compose-linux-x86_64 -o ./docker-compose
-            chmod +x ./docker-compose
-
-            echo "🧹 Cleaning up OLD containers (Fixing Conflicts)..."
-            ./docker-compose down --remove-orphans || true
-
-            echo "🚀 Starting Deployment (This might be slow ONLY ONCE)..."
-            ./docker-compose up -d --build
-
-            echo "✨ Cleaning up dangling images..."
-            docker image prune -f
+            
+            # 3. Rebuild Docker images.
+            echo "Building Docker images..."
+            make k8s-build
+            
+            # 4. Import images into K3s.
+            echo "Importing images to K3s..."
+            docker save hm-backend:latest | sudo k3s ctr images import -
+            docker save hm-frontend:latest | sudo k3s ctr images import -
+            
+            # 5. Restart Pods (Rollout)
+            echo "Restarting Kubernetes Deployments..."
+            kubectl rollout restart deployment backend
+            kubectl rollout restart deployment frontend
+            
+            echo "Deployment Successful!"
