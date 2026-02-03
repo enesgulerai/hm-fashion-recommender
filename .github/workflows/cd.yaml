@@ -21,30 +21,42 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
-          timeout: 10m
-          command_timeout: 30m
+          timeout: 20m
+          command_timeout: 40m
           script: |
-            # 1. Go to the folder and catch the errors.
             set -e
             cd /home/ubuntu/hm-fashion-recommender
             
-            # 2. Check the latest code
-            echo "Pulling latest code..."
+            echo "📥 Pulling latest code..."
             git pull origin main
             
-            # 3. Rebuild Docker images.
-            echo "Building Docker images..."
-            make k8s-build
+            # --- BACKEND ---
+            echo "Building Backend..."
+            docker build -t hm-backend:latest -f Dockerfile.api .
             
-            # 4. Import images into K3s.
-            echo "Importing images to K3s..."
+            echo "Importing Backend to K3s..."
             docker save hm-backend:latest | sudo k3s ctr images import -
+            
+            echo "Cleaning Backend Artifacts..."
+            docker rmi hm-backend:latest
+            
+            echo "Cooldown (30s)..."
+            sleep 30
+            
+            # --- FRONTEND ---
+            echo "Building Frontend..."
+            docker build -t hm-frontend:latest -f Dockerfile.frontend .
+            
+            echo "Importing Frontend to K3s..."
             docker save hm-frontend:latest | sudo k3s ctr images import -
             
-            echo "Cooling down for 60 seconds to let K3s recover..."
-            sleep 60
+            echo "Cleaning Frontend Artifacts..."
+            docker rmi hm-frontend:latest
             
-            # 5. Restart Pods (Rollout)
+            echo "Final Cooldown (30s)..."
+            sleep 30
+            
+            # --- RESTART ---
             echo "Restarting Kubernetes Deployments..."
             sudo kubectl rollout restart deployment backend
             sudo kubectl rollout restart deployment frontend
