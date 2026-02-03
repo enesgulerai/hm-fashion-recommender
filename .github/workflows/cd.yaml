@@ -41,6 +41,9 @@ jobs:
             docker save hm-backend:latest | sudo k3s ctr images import -
             docker save hm-frontend:latest | sudo k3s ctr images import -
             
+            echo "Cooling down for 60 seconds to let K3s recover..."
+            sleep 60
+            
             # 5. Restart Pods (Rollout)
             echo "Restarting Kubernetes Deployments..."
             sudo kubectl rollout restart deployment backend
