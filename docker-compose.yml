@@ -124,5 +124,3 @@ volumes:
 networks:
   hm_network:
     driver: bridge
-
-  # force deploy
