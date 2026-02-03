@@ -84,9 +84,7 @@ services:
 
   # 6. BACKEND API
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile.api
+    image: enesgulerml/hm-backend:latest
     container_name: hm_api
     ports:
       - "8001:8000"
@@ -103,17 +101,10 @@ services:
     restart: always
     networks:
       - hm_network
-    healthcheck:
-      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/docs').getcode() == 200"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   # 7. FRONTEND
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
+    image: enesgulerml/hm-frontend:latest
     container_name: hm_ui
     ports:
       - "8502:8501"
