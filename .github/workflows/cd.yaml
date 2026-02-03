@@ -43,7 +43,7 @@ jobs:
             
             # 5. Restart Pods (Rollout)
             echo "Restarting Kubernetes Deployments..."
-            kubectl rollout restart deployment backend
-            kubectl rollout restart deployment frontend
+            sudo kubectl rollout restart deployment backend
+            sudo kubectl rollout restart deployment frontend
             
             echo "Deployment Successful!"
