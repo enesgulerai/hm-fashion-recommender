@@ -85,6 +85,9 @@ services:
   # 6. BACKEND API
   backend:
     image: enesgulerml/hm-backend:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.api
     container_name: hm_api
     ports:
       - "8001:8000"
@@ -105,12 +108,14 @@ services:
   # 7. FRONTEND
   frontend:
     image: enesgulerml/hm-frontend:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
     container_name: hm_ui
     ports:
       - "8502:8501"
     depends_on:
-      backend:
-        condition: service_healthy
+      - backend
     environment:
       - BACKEND_URL=http://backend:8000
     restart: always
