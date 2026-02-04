@@ -185,6 +185,23 @@ The infrastructure creates a scalable environment for the ML model and vector da
 ## 🧪 Running Tests
 You don't need to install Python or dependencies locally. The test suite runs inside a Docker container to ensure consistency across all environments.
 
+### 🛠️ Local Development Setup
+
+Before running tests or the application, please set up your virtual environment:
+
+```bash
+    # 1. Create a virtual environment named .venv
+    python3 -m venv .venv
+    
+    # 2. Activate the environment
+    # On Linux/macOS:
+    source .venv/bin/activate
+    # On Windows:
+    # .venv\Scripts\activate
+    
+    # 3. Install dependencies
+    pip install -r requirements.txt
+```
 ```bash
     # Run unit tests inside Docker
     make test
