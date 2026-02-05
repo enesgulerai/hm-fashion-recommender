@@ -67,7 +67,7 @@ services:
   etl:
     build:
       context: .
-      dockerfile: Dockerfile.api
+      dockerfile: docker/backend/Dockerfile
     container_name: hm_etl_worker
     user: root
     command: python -m src.pipelines.ingestion_pipeline
@@ -87,7 +87,7 @@ services:
     image: enesgulerml/hm-backend:latest
     build:
       context: .
-      dockerfile: Dockerfile.api
+      dockerfile: docker/backend/Dockerfile
     container_name: hm_api
     ports:
       - "8001:8000"
@@ -110,7 +110,7 @@ services:
     image: enesgulerml/hm-frontend:latest
     build:
       context: .
-      dockerfile: Dockerfile.frontend
+      dockerfile: docker/frontend/Dockerfile
     container_name: hm_ui
     ports:
       - "8502:8501"

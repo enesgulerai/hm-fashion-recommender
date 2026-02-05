@@ -29,7 +29,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: Dockerfile.api
+          file: docker/backend/Dockerfile
           push: true
           tags: enesgulerml/hm-backend:latest
           cache-from: type=registry,ref=enesgulerml/hm-backend:latest
@@ -40,7 +40,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: Dockerfile.frontend
+          file: docker/frontend/Dockerfile
           push: true
           tags: enesgulerml/hm-frontend:latest
           cache-from: type=registry,ref=enesgulerml/hm-frontend:latest

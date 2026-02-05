@@ -12,7 +12,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY src/api/requirements.txt .
+COPY ../../src/api/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # --- STAGE 2: RUNTIME ---
@@ -37,12 +37,12 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
 
 COPY --from=builder /opt/venv /opt/venv
 
-COPY config/ ./config/
-COPY src/__init__.py ./src/
-COPY src/api/ ./src/api/
-COPY src/components/ ./src/components/
-COPY src/pipelines/ ./src/pipelines/
-COPY src/utils/ ./src/utils/
+COPY ../../config ./config/
+COPY ../../src/__init__.py ./src/
+COPY ../../src/api ./src/api/
+COPY ../../src/components ./src/components/
+COPY ../../src/pipelines ./src/pipelines/
+COPY ../../src/utils ./src/utils/
 
 RUN mkdir -p /app/models && \
     chown -R hm_user:hm_app /app && \
