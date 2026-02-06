@@ -133,8 +133,9 @@ Access the UI at: http://localhost:30001
 ## 📂 Project Structure
 
 ```text
-├── config/             # Centralized configuration (YAML)
+├── config/             # Centralized configuration files (YAML)
 ├── .github/            # CI/CD Operations
+├── docker/             # Dockerfiles
 ├── k8s/                # Kubernetes Operations
 ├── src/
 │   ├── api/            # FastAPI application (app.py)
@@ -143,8 +144,6 @@ Access the UI at: http://localhost:30001
 │   └── utils/          # Logger & Helper functions
 ├── tests/              # Pytest integration tests
 ├── docker-compose.yml  # Orchestration of services
-├── Dockerfile.api      # Optimized Multi-Stage Dockerfile for API
-├── Dockerfile.frontend # Optimized Multi-Stage Dockerfile for Frontend
 └── README.md           # Documentation
 ```
 
