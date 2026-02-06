@@ -7,3 +7,14 @@ include = '\.pyi?$'
 profile = "black"
 multi_line_output = 3
 line_length = 88
+
+[tool.pytest.ini_options]
+addopts = "-p no:cacheprovider"
+pythonpath = "."
+testpaths = ["tests"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning",
+    "ignore::PendingDeprecationWarning:starlette.formparsers",
+    "ignore::SyntaxWarning:sentence_transformers.*"
+]

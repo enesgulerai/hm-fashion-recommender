@@ -1,4 +1,4 @@
-# --- H&M Recommendation System - Bulletproof Makefile ---
+# --- H&M Recommendation System ---
 
 .PHONY: help run stop logs clean prune
 
