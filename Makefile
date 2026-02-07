@@ -35,9 +35,9 @@ run:
 	@echo "====================================================="
 	@echo "SYSTEM IS UP AND RUNNING!"
 	@echo "====================================================="
-	@echo "UI is running at: http://localhost:8501"
-	@echo "API is running at: http://localhost:8000"
-	@echo "Monitoring at:    http://localhost:3000"
+	@echo "UI is running at: http://localhost:8502"
+	@echo "API is running at: http://localhost:8001"
+	@echo "Monitoring at:    http://localhost:3001"
 	@echo "Tip: To track logs, type 'make logs'."
 
 stop:
@@ -67,29 +67,44 @@ test:
 # =============================================================================
 k8s-build:
 	@echo "Building Docker images for Kubernetes..."
-	docker build -t hm-backend:latest -f Dockerfile.api .
-	docker build -t hm-frontend:latest -f Dockerfile.frontend .
-	docker build -t hm-etl:latest -f Dockerfile.api .
+	docker build -t hm-backend:latest -f docker/backend/Dockerfile .
+	docker build -t hm-frontend:latest -f docker/frontend/Dockerfile .
+	docker build -t hm-etl:latest -f docker/backend/Dockerfile .
 
 k8s-deploy: k8s-build
 	@echo "Deploying to Kubernetes..."
-	# 1. Infrastructure and Discs
+	@echo "1. Infrastructure and Discs"
 	kubectl apply -f $(K8S_DIR)/infrastructure/
-	# 2. Databases
+	@echo "2. Databases"
 	kubectl apply -f $(K8S_DIR)/databases/
 	@echo "Waiting for databases to be ready..."
-	sleep 10
-	# 3. Applications
+	kubectl wait --for=condition=available --timeout=120s deployment/redis deployment/qdrant
+	@echo "3. Applications"
 	kubectl apply -f $(K8S_DIR)/apps/
 	@echo "Deployment complete! Frontend: http://localhost:30001"
 
 k8s-ingest:
 	@echo "Starting ETL Job..."
-	-kubectl delete job etl-ingestion 2>nul || true
-	kubectl apply -f $(K8S_DIR)/jobs/ingestion.yaml
+	-kubectl delete job etl-ingestion --ignore-not-found=true --wait=true
+
+	kubectl apply -f k8s/jobs/ingestion.yaml
+
 	@echo "Logs for ETL (Press Ctrl+C to exit):"
-	sleep 2
-	@kubectl get pods -l job-name=etl-ingestion -o name | xargs kubectl logs -f
+	kubectl logs -l job-name=etl-ingestion -f --pod-running-timeout=30s
+
+k8s-run:
+	@echo "Starting Full Kubernetes Deployment..."
+
+	@echo "Deploying Infrastructure & DBs..."
+	make k8s-deploy
+
+	@echo "Waiting 30s for Databases to warm up..."
+	kubectl wait --for=condition=available --timeout=60s deployment/redis deployment/qdrant
+
+	@echo "Starting ETL Job (Data Ingestion)..."
+	make k8s-ingest
+
+	@echo "All systems GO! Visit: http://localhost:30001"
 
 k8s-stop:
 	@echo "Stopping Kubernetes resources..."
