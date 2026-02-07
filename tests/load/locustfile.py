@@ -1,11 +1,23 @@
-from locust import HttpUser, task, between
 import random
 
+from locust import HttpUser, between, task
+
 SEARCH_TERMS = [
-    "black dress", "blue jeans", "summer t-shirt", "leather jacket",
-    "running shoes", "white hoodie", "floral skirt", "denim shorts",
-    "winter coat", "red scarf", "gym wear", "office shirt", "silk pajamas",
-    "vintage sunglasses", "casual sneakers"
+    "black dress",
+    "blue jeans",
+    "summer t-shirt",
+    "leather jacket",
+    "running shoes",
+    "white hoodie",
+    "floral skirt",
+    "denim shorts",
+    "winter coat",
+    "red scarf",
+    "gym wear",
+    "office shirt",
+    "silk pajamas",
+    "vintage sunglasses",
+    "casual sneakers",
 ]
 
 
@@ -16,7 +28,9 @@ class FashionUser(HttpUser):
     def predict_fashion(self):
         term = random.choice(SEARCH_TERMS)
 
-        with self.client.post("/recommend", json={"text": term, "top_k": 5}, catch_response=True) as response:
+        with self.client.post(
+            "/recommend", json={"text": term, "top_k": 5}, catch_response=True
+        ) as response:
 
             if response.status_code == 200:
                 response.success()
