@@ -96,7 +96,7 @@ This project includes fully configured Kubernetes manifests for scalable deploym
 - `kubectl` CLI installed
 
 ### Quick Start with K8s
-Instead of Docker Compose, you can deploy the entire stack to a local Kubernetes cluster:
+Instead of Docker Compose, you can deploy the entire stack to a local Kubernetes cluster. You need to enable Kubernetes on your Docker Desktop:
 
 1. **Deploy the System:**
    ```bash
@@ -115,7 +115,6 @@ Access the UI at: http://localhost:30001
     ```
 
 ---
-
 
 ## 🛠️ Tech Stack & Engineering Decisions
 
@@ -190,19 +189,21 @@ Before running tests or the application, please set up your virtual environment:
 
 ```bash
     # 1. Create a virtual environment named .venv
+    # On Linux/macOs:
     python3 -m venv .venv
+    # On Windows:
+    python -m venv .venv
     
     # 2. Activate the environment
     # On Linux/macOS:
     source .venv/bin/activate
     # On Windows:
-    # .venv\Scripts\activate
+    .venv\Scripts\activate
     
     # 3. Install dependencies
     pip install -r requirements.txt
-```
-```bash
-    # Run unit tests inside Docker
+    
+    # 4. Run unit tests
     make test
 ```
 
