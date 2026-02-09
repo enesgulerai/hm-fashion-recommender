@@ -110,7 +110,7 @@ def home():
 
 
 @app.post("/recommend")
-async def recommend_products(request: SearchRequest):
+def recommend_products(request: SearchRequest):
     """
     Returns similar products using Redis Caching + Vector Search Pipeline.
     """
