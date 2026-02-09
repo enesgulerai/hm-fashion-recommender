@@ -1,4 +1,4 @@
-# 🛍️ AI Fashion Stylist: Personalized Recommendation System
+# AI Fashion Stylist: Personalized Recommendation System
 
 ![Python](https://img.shields.io/badge/Python-3.10-blue?style=for-the-badge&logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688?style=for-the-badge&logo=fastapi)
@@ -21,11 +21,11 @@ This project implements an **End-to-End MLOps pipeline** for a real-time fashion
 
 ## 🌟 Key Features
 
-* **⚡ High-Performance Architecture:** Uses **Redis** for caching frequent queries, reducing API latency by ~40%.
-* **🐳 Production-Grade Docker:** Implements **Multi-Stage Builds** for smaller images and enforces **Non-Root User** security policies.
-* **🔍 Hybrid Search:** Combines Vector Search (Qdrant) with metadata filtering.
-* **📈 Observability:** Real-time monitoring of RPS, Latency, and Memory usage via **Prometheus & Grafana**.
-* **🧩 Modular Design:** Decoupled architecture with `src/pipelines`, `src/api`, and `src/ui` modules using Interface Segregation principles.
+* **High-Performance Architecture:** Uses **Redis** for caching frequent queries, reducing API latency by ~40%.
+* **Production-Grade Docker:** Implements **Multi-Stage Builds** for smaller images and enforces **Non-Root User** security policies.
+* **Hybrid Search:** Combines Vector Search (Qdrant) with metadata filtering.
+* **Observability:** Real-time monitoring of RPS, Latency, and Memory usage via **Prometheus & Grafana**.
+* **Modular Design:** Decoupled architecture with `src/pipelines`, `src/api`, and `src/ui` modules using Interface Segregation principles.
 
 ---
 
@@ -91,7 +91,7 @@ We have automated the entire process (Data Download -> Embedding -> Vector DB In
 
 To ensure reliability and scalability, the application was subjected to rigorous load testing using **Locust** on a local Kubernetes cluster.
 
-### 📊 Benchmark Results
+### Benchmark Results
 
 * **Environment:** Local Docker Desktop (Docker Compose)
 
@@ -101,12 +101,12 @@ To ensure reliability and scalability, the application was subjected to rigorous
 | **High Load** | 250 | 20 | ~120 | **64ms** | 0% | 🚀 Highly Scalable |
 | **Stress Test** | 1000 | 50 | ~255 | 1150ms | **0%** | 🛡️ Extremely Resilient |
 
-### 🏆 Key Findings
+### Key Findings
 1.  **Zero Downtime:** The system maintained a **0% failure rate** across all scenarios, proving the stability of the Kubernetes deployment.
 2.  **Linear Scalability:** Increasing the load from 50 to 250 users resulted in only a **12ms increase** in latency, demonstrating efficient resource utilization by the inference pipeline.
 3.  **Resilience:** Under extreme stress (1000 users), the system handled **250+ requests per second** without crashing, utilizing queueing mechanisms effectively despite hardware limitations.
 
-### 📸 Evidence
+### Evidence
 ![Load Test Results](docs/load_test/load_test_results_50.png)
 ![Load Test Results](docs/load_test/load_test_results_250.png)
 ![Load Test Results](docs/load_test/load_test_results_1000.png)
@@ -178,12 +178,12 @@ Access the UI at: http://localhost:30001
 ## 🔗 Service Access Points (Quick Links)
 Once Docker is running, you can access all microservices via these links:
 
-| Service | URL | Default Credentials | Description |
-| :--- | :--- | :--- | :--- |
-| 🛍️ **Frontend App** | [**http://localhost:8502**](http://localhost:8502) | - | The main User Interface (Streamlit). Start here! |
-| 📄 **API Docs** | [**http://localhost:8001/docs**](http://localhost:8001/docs) | - | Interactive Swagger UI to test API endpoints. |
-| 📊 **Grafana** | [**http://localhost:3001**](http://localhost:3001) | `admin` / `admin` | Real-time dashboards for metrics visualization. |
-| 📈 **Prometheus** | [**http://localhost:9091**](http://localhost:9091) | - | Raw metrics scraping and querying interface. |
+| Service          | URL | Default Credentials | Description |
+|:-----------------| :--- | :--- | :--- |
+| **Frontend App** | [**http://localhost:8502**](http://localhost:8502) | - | The main User Interface (Streamlit). Start here! |
+| **API Docs**     | [**http://localhost:8001/docs**](http://localhost:8001/docs) | - | Interactive Swagger UI to test API endpoints. |
+| **Grafana**      | [**http://localhost:3001**](http://localhost:3001) | `admin` / `admin` | Real-time dashboards for metrics visualization. |
+| **Prometheus** | [**http://localhost:9091**](http://localhost:9091) | - | Raw metrics scraping and querying interface. |
 
 ---
 
@@ -192,10 +192,10 @@ Once Docker is running, you can access all microservices via these links:
 This project is deployed on **AWS EC2** using **Kubernetes (K3s)**.
 The infrastructure creates a scalable environment for the ML model and vector database.
 
-### 🚀 Live Preview
+### Live Preview
 ![App Demo](docs/aws/hm-aws-streamlit.gif)
 
-### 🏗️ Infrastructure Details
+### Infrastructure Details
 * **Cloud Provider:** AWS (eu-central-1)
 * **Instance Type:** t3.small
 * **Orchestration:** K3s (Lightweight Kubernetes)
@@ -210,7 +210,7 @@ The infrastructure creates a scalable environment for the ML model and vector da
 ## 🧪 Running Tests
 You don't need to install Python or dependencies locally. The test suite runs inside a Docker container to ensure consistency across all environments.
 
-### 🛠️ Local Development Setup
+### Local Development Setup
 
 Before running tests or the application, please set up your virtual environment:
 
@@ -236,10 +236,10 @@ Before running tests or the application, please set up your virtual environment:
 
 **Test Coverage:**
 
-* ✅ Health Check: Verifies if the API core is up and running. 
-* ✅ Recommendation Logic: Simulates a user query and validates the mapping of search results. 
-* ✅ Input Validation: Ensures the API handles invalid or too short queries correctly (HTTP 422). 
-* ✅ Pipeline Flow: Mocks the Embedding Model and Qdrant client to verify the internal data transformation flow.
+* Health Check: Verifies if the API core is up and running. 
+* Recommendation Logic: Simulates a user query and validates the mapping of search results. 
+* Input Validation: Ensures the API handles invalid or too short queries correctly (HTTP 422). 
+* Pipeline Flow: Mocks the Embedding Model and Qdrant client to verify the internal data transformation flow.
 
 ---
 
@@ -250,4 +250,4 @@ To stop all services and clean up:
 ```
 
 ## 👨‍💻 Author
-**Enes Guler** - MLOps Engineer & Data Scientist
+**Enes Guler** - Junior MLOps Engineer
