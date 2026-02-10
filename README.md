@@ -67,7 +67,7 @@ Real-time API metrics tracked via **Prometheus** and visualized on **Grafana**.
 ---
 
 ## 🚀 Quick Start (Docker)
-You don't need to install Python or libraries manually. Just use Docker.
+You don't need to install Python or libraries manually.
 
 ### 1. Clone the Repository
 ```bash
@@ -85,6 +85,11 @@ We have automated the entire process (Data Download -> Embedding -> Vector DB In
     docker-compose up -d --build
 ```
 
+### 3. Stop the System
+```bash
+    make stop
+```
+
 ---
 
 ## 🚀 Performance & Load Testing
@@ -95,11 +100,11 @@ To ensure reliability and scalability, the application was subjected to rigorous
 
 * **Environment:** Local Docker Desktop (Docker Compose)
 
-| Scenario | Concurrent Users | Spawn Rate | RPS (Req/Sec) | Avg Latency | Error Rate | Verdict |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Normal Load** | 50 | 5 | ~24 | **52ms** | 0% | ⚡ Lightning Fast |
-| **High Load** | 250 | 20 | ~120 | **64ms** | 0% | 🚀 Highly Scalable |
-| **Stress Test** | 1000 | 50 | ~255 | 1150ms | **0%** | 🛡️ Extremely Resilient |
+| Scenario | Concurrent Users | Spawn Rate | RPS (Req/Sec) | Avg Latency | Error Rate | Verdict               |
+| :--- | :--- | :--- | :--- | :--- | :--- |:----------------------|
+| **Normal Load** | 50 | 5 | ~24 | **52ms** | 0% | Lightning Fast        |
+| **High Load** | 250 | 20 | ~120 | **64ms** | 0% | Highly Scalable       |
+| **Stress Test** | 1000 | 50 | ~255 | 1150ms | **0%** |  Extremely Resilient  |
 
 ### Key Findings
 1.  **Zero Downtime:** The system maintained a **0% failure rate** across all scenarios, proving the stability of the Kubernetes deployment.
@@ -243,11 +248,5 @@ Before running tests or the application, please set up your virtual environment:
 
 ---
 
-## 🛑 Stop the System
-To stop all services and clean up:
-```bash
-    make stop
-```
-
 ## 👨‍💻 Author
-**Enes Guler** - Junior MLOps Engineer
+**Enes Guler** - MLOps Engineer
