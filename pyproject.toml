@@ -1,3 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hm-fashion-recommendation"
+version = "0.1.0"
+description = "H&M Recommendation System - End-to-End MLOps Refactoring"
+authors = [{name = "Enes Guler", email = "enesguler.ml@gmail.com"}]
+requires-python = ">=3.10"
+dependencies = [
+    # Buraya ana bağımlılıkları yazabilirsin veya
+    # requirements.txt kullanmaya devam edeceksen burayı şimdilik dinamik bırakabiliriz.
+]
+
+# ----------------------------------------
+
 [tool.black]
 line-length = 88
 target-version = ['py310']

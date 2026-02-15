@@ -8,14 +8,14 @@ import numpy as np
 import pandas as pd  # <--- EKLENDI: Veri analizi için
 import redis
 import uvicorn
+from evidently.metric_preset import DataDriftPreset
+
+# --- EVIDENTLY IMPORTS (YENİ) ---
+from evidently.report import Report
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse  # <--- EKLENDI: Dashboard HTML'i için
 from prometheus_fastapi_instrumentator import Instrumentator
 from pydantic import BaseModel, Field
-
-# --- EVIDENTLY IMPORTS (YENİ) ---
-from evidently.report import Report
-from evidently.metric_preset import DataDriftPreset
 
 # --- MODULE PATH SETTING ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -34,12 +34,14 @@ config = read_config("config/config.yaml")
 # --- EVIDENTLY CONFIGURATION (SIMULATION) ---
 # Modelin "Sağlıklı" olduğu zamanları temsil eden Referans Veri.
 # Gerçek hayatta burası eğitim veri setin (training data) olurdu.
-reference_data = pd.DataFrame({
-    'text_len': np.random.normal(15, 5, 100).astype(int),  # Ort. 15 harf uzunluk
-    'response_time': np.random.normal(0.05, 0.01, 100)     # Ort. 50ms cevap süresi
-})
+reference_data = pd.DataFrame(
+    {
+        "text_len": np.random.normal(15, 5, 100).astype(int),  # Ort. 15 harf uzunluk
+        "response_time": np.random.normal(0.05, 0.01, 100),  # Ort. 50ms cevap süresi
+    }
+)
 # Negatif değerleri temizleyelim
-reference_data = reference_data[reference_data['text_len'] > 0]
+reference_data = reference_data[reference_data["text_len"] > 0]
 
 # Canlı verileri burada biriktireceğiz
 current_data_buffer = []
@@ -82,7 +84,7 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Model yüklenirken hata oluştu: {e}")
         # Hata olsa bile API çökmesin, drift dashboard çalışsın diye pass geçiyoruz
-        pass 
+        pass
 
     yield
 
@@ -122,7 +124,7 @@ def home():
         "service": "H&M AI Recommender System",
         "redis_cache": redis_status,
         "model": config["model"]["name"],
-        "drift_monitoring": "active" # Yeni özellik
+        "drift_monitoring": "active",  # Yeni özellik
     }
 
 
@@ -133,12 +135,12 @@ def recommend_products(request: SearchRequest):
     Now logs data for Drift Detection.
     """
     start_time = time.time()  # <--- Kronometre Başladı
-    
+
     try:
         # --- 1. REDIS CACHE CONTROL ---
         normalized_text = request.text.lower().strip()
         cache_key = f"search:{normalized_text}:{request.top_k}"
-        
+
         final_response_data = None
 
         if redis_client:
@@ -150,7 +152,7 @@ def recommend_products(request: SearchRequest):
         # --- 2. PIPELINE CALL (CACHE MISS) ---
         if not final_response_data:
             logger.info(f"CACHE MISS. Asking AI Model for '{normalized_text}'...")
-            
+
             # Eğer Pipeline yüklüyse gerçek tahmin yap, değilse boş dön (Hata vermesin)
             if ml_pipeline:
                 results = ml_pipeline.search_products(request.text, top_k=request.top_k)
@@ -167,17 +169,21 @@ def recommend_products(request: SearchRequest):
             if redis_client and results and ml_pipeline:
                 cache_data = final_response_data.copy()
                 cache_data["source"] = "redis_cache"
-                redis_client.setex(cache_key, 3600, json.dumps(cache_data, cls=NpEncoder))
+                redis_client.setex(
+                    cache_key, 3600, json.dumps(cache_data, cls=NpEncoder)
+                )
 
         # --- 4. EVIDENTLY LOGGING (YENİ KISIM) ---
         # İşlem bitti, drift için veriyi kaydedelim
         process_time = time.time() - start_time
-        
-        current_data_buffer.append({
-            "text_len": len(request.text),      # Girdi özelliği (Drift olabilir)
-            "response_time": process_time       # Çıktı performansı (Model yavaşladı mı?)
-        })
-        
+
+        current_data_buffer.append(
+            {
+                "text_len": len(request.text),  # Girdi özelliği (Drift olabilir)
+                "response_time": process_time,  # Çıktı performansı (Model yavaşladı mı?)
+            }
+        )
+
         return final_response_data
 
     except Exception as e:
@@ -201,16 +207,16 @@ async def dashboard():
             </body>
         </html>
         """
-    
+
     # 1. Tampon belleği DataFrame'e çevir
     current_data = pd.DataFrame(current_data_buffer)
-    
+
     # 2. Raporu oluştur
     drift_report = Report(metrics=[DataDriftPreset()])
-    
+
     # 3. Referans vs Güncel veriyi karşılaştır
     drift_report.run(reference_data=reference_data, current_data=current_data)
-    
+
     # 4. HTML çıktısını dön
     return drift_report.get_html()
 
