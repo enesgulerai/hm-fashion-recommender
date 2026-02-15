@@ -64,6 +64,9 @@ Real-time API metrics tracked via **Prometheus** and visualized on **Grafana**.
 
 ![Dashboard](docs/images/dashboard.png)
 
+## 📉 Real-Time Drift Monitoring
+![Evidently Dashboard](docs/evidently/evidently_drift_dashboard.png)
+
 ---
 
 ## 🚀 Quick Start (Docker)
