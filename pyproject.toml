@@ -13,8 +13,6 @@ dependencies = [
     # requirements.txt kullanmaya devam edeceksen burayı şimdilik dinamik bırakabiliriz.
 ]
 
-# ----------------------------------------
-
 [tool.black]
 line-length = 88
 target-version = ['py310']
