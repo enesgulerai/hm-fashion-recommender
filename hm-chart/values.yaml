@@ -1,0 +1,63 @@
+# --- BACKEND FastAPI ---
+backend:
+  replicaCount: 1
+  image:
+    repository: enesgulerml/hm-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8000
+
+# --- FRONTEND Streamlit ---
+frontend:
+  replicaCount: 1
+  image:
+    repository: enesgulerml/hm-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: NodePort
+    port: 8501
+    nodePort: 30001
+
+# --- QDRANT Vector DB ---
+qdrant:
+  replicaCount: 1
+  image:
+    repository: qdrant/qdrant
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 6333
+  storage:
+    pvcName: qdrant-pvc
+    mountPath: /qdrant/storage
+    size: 5Gi
+
+# --- REDIS Cache ---
+redis:
+  replicaCount: 1
+  image:
+    repository: redis
+    tag: alpine
+  service:
+    type: ClusterIP
+    port: 6379
+  storage:
+    pvcName: redis-pvc
+    mountPath: /data
+    size: 1Gi
+
+# --- INFRASTRUCTURE ---
+config:
+  grafanaPassword: "admin"
+
+# --- ETL ---
+ingestion:
+  enabled: false
+  ttlSecondsAfterFinished: 600
+  image:
+    repository: enesgulerml/hm-etl
+    tag: latest
+    pullPolicy: IfNotPresent

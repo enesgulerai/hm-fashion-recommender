@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qdrant
+spec:
+  replicas: {{ .Values.qdrant.replicaCount }}
+  selector:
+    matchLabels:
+      app: qdrant
+  template:
+    metadata:
+      labels:
+        app: qdrant
+    spec:
+      containers:
+      - name: qdrant
+        image: "{{ .Values.qdrant.image.repository }}:{{ .Values.qdrant.image.tag }}"
+        ports:
+        - containerPort: {{ .Values.qdrant.service.port }}
+        volumeMounts:
+        - name: qdrant-storage
+          mountPath: {{ .Values.qdrant.storage.mountPath }}
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.qdrant.service.port }}
+          initialDelaySeconds: 10
+          periodSeconds: 10
+      volumes:
+      - name: qdrant-storage
+        persistentVolumeClaim:
+          claimName: {{ .Values.qdrant.storage.pvcName }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qdrant-service
+spec:
+  selector:
+    app: qdrant
+  ports:
+    - protocol: TCP
+      port: {{ .Values.qdrant.service.port }}
+      targetPort: {{ .Values.qdrant.service.port }}
+  type: {{ .Values.qdrant.service.type }}

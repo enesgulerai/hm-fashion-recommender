@@ -1,0 +1,25 @@
+{{- if .Values.ingestion.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: etl-ingestion
+spec:
+  ttlSecondsAfterFinished: {{ .Values.ingestion.ttlSecondsAfterFinished }}
+  template:
+    spec:
+      containers:
+      - name: etl
+        image: "{{ .Values.ingestion.image.repository }}:{{ .Values.ingestion.image.tag }}"
+        imagePullPolicy: {{ .Values.ingestion.image.pullPolicy }}
+        command: ["python", "-m", "src.pipelines.ingestion_pipeline"]
+        envFrom:
+        - configMapRef:
+            name: hm-config
+        volumeMounts:
+        - name: temp-data
+          mountPath: /app/data
+      restartPolicy: OnFailure
+      volumes:
+      - name: temp-data
+        emptyDir: {}
+{{- end }}
