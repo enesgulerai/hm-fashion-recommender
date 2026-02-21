@@ -6,13 +6,12 @@ from contextlib import asynccontextmanager
 
 import numpy as np
 import pandas as pd
-import redis
+import redis.asyncio as redis
 import uvicorn
 from evidently.metric_preset import DataDriftPreset
-
-# --- EVIDENTLY IMPORTS ---
 from evidently.report import Report
 from fastapi import FastAPI, HTTPException
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse
 from prometheus_fastapi_instrumentator import Instrumentator
 from pydantic import BaseModel, Field
@@ -39,7 +38,6 @@ reference_data = pd.DataFrame(
     }
 )
 reference_data = reference_data[reference_data["text_len"] > 0]
-
 current_data_buffer = []
 
 
@@ -60,14 +58,14 @@ class NpEncoder(json.JSONEncoder):
 async def lifespan(app: FastAPI):
     global ml_pipeline, redis_client
 
-    # 1. REDIS CONNECTION
+    # 1. REDIS CONNECTION (ASYNC)
     redis_host = os.getenv("REDIS_HOST", "localhost")
     try:
         redis_client = redis.Redis(
             host=redis_host, port=6379, db=0, decode_responses=True
         )
-        if redis_client.ping():
-            logger.info(f"Redis Connection Established on {redis_host}!")
+        await redis_client.ping()  # Asenkron ping
+        logger.info(f"Redis Connection Established on {redis_host}!")
     except Exception as e:
         logger.warning(f"Redis Connection Failed: {e}. Caching disabled.")
         redis_client = None
@@ -87,7 +85,7 @@ async def lifespan(app: FastAPI):
     logger.info("API Shutting Down...")
     ml_pipeline = None
     if redis_client:
-        redis_client.close()
+        await redis_client.aclose()
 
 
 # --- APP DEFINITION ---
@@ -113,7 +111,7 @@ class SearchRequest(BaseModel):
 # --- ENDPOINTS ---
 @app.get("/")
 def home():
-    redis_status = "active" if redis_client and redis_client.ping() else "inactive"
+    redis_status = "active" if redis_client else "inactive"
     return {
         "status": "alive",
         "service": "H&M AI Recommender System",
@@ -124,38 +122,31 @@ def home():
 
 
 @app.post("/recommend")
-def recommend_products(request: SearchRequest):
-    """
-    Returns similar products using Redis Caching + Vector Search Pipeline.
-    Now logs data for Drift Detection.
-    """
+async def recommend_products(request: SearchRequest):
     start_time = time.time()
 
     try:
-        # --- 1. REDIS CACHE CONTROL ---
+        # --- 1. REDIS CACHE CONTROL (ASYNC) ---
         normalized_text = request.text.lower().strip()
         cache_key = f"search:{normalized_text}:{request.top_k}"
-
         final_response_data = None
 
         if redis_client:
-            cached_result = redis_client.get(cache_key)
+            cached_result = await redis_client.get(cache_key)
             if cached_result:
                 logger.info(f"CACHE HIT for '{normalized_text}'")
                 final_response_data = json.loads(cached_result)
 
-        # --- 2. PIPELINE CALL (CACHE MISS) ---
+        # --- 2. PIPELINE CALL (CACHE MISS & THREADPOOL) ---
         if not final_response_data:
             logger.info(f"CACHE MISS. Asking AI Model for '{normalized_text}'...")
 
             if ml_pipeline:
-                results = ml_pipeline.search_products(request.text, top_k=request.top_k)
+                results = await run_in_threadpool(
+                    ml_pipeline.search_products, request.text, top_k=request.top_k
+                )
             else:
-                results = [
-                    {
-                        "error": "The model hasn't been uploaded yet, or there's a pipeline error."
-                    }
-                ]
+                results = [{"error": "Pipeline error."}]
 
             final_response_data = {
                 "results": results,
@@ -163,17 +154,16 @@ def recommend_products(request: SearchRequest):
                 "count": len(results),
             }
 
-            # --- 3. SAVING TO REDIS ---
+            # --- 3. SAVING TO REDIS (ASYNC) ---
             if redis_client and results and ml_pipeline:
                 cache_data = final_response_data.copy()
                 cache_data["source"] = "redis_cache"
-                redis_client.setex(
+                await redis_client.setex(
                     cache_key, 3600, json.dumps(cache_data, cls=NpEncoder)
                 )
 
         # --- 4. EVIDENTLY LOGGING ---
         process_time = time.time() - start_time
-
         current_data_buffer.append(
             {
                 "text_len": len(request.text),
@@ -189,33 +179,19 @@ def recommend_products(request: SearchRequest):
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard():
+def dashboard():
     """
-    DRIFT REPORT GENERATOR
+    DRIFT REPORT GENERATOR (CPU-Bound Task)
     """
     if not current_data_buffer:
-        return """
-        <html>
-            <body style="font-family: sans-serif; text-align: center; padding: 50px;">
-                <h1>No Data Yet!</h1>
-                <p>The system is waiting for data to perform drift analysis.</p>
-                <p>Please <b>/recommend</b> Send a few requests to the endpoint.</p>
-            </body>
-        </html>
-        """
+        return "<html><body><h1>No Data Yet!</h1></body></html>"
 
-    # 1. Convert buffer memory to DataFrame
     current_data = pd.DataFrame(current_data_buffer)
-
-    # 2. Generate report
     drift_report = Report(metrics=[DataDriftPreset()])
-
-    # 3. Compare reference data vs. current data.
     drift_report.run(reference_data=reference_data, current_data=current_data)
 
-    # 4. Return HTML output
     return drift_report.get_html()
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    uvicorn.run("app:app", host="0.0.0.0", port=8001, workers=4)

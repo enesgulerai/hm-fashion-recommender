@@ -44,4 +44,4 @@ COPY src/utils ./src/utils/
 RUN mkdir -p /app/models && chown -R hm_user:hm_app /app /home/hm_user
 USER hm_user
 
-CMD ["uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
