@@ -105,9 +105,9 @@ To ensure reliability and scalability, the application was subjected to rigorous
 
 | Scenario | Concurrent Users | Spawn Rate | RPS (Req/Sec) | Avg Latency | Error Rate | Verdict               |
 | :--- | :--- | :--- | :--- | :--- | :--- |:----------------------|
-| **Normal Load** | 50 | 5 | ~24 | **52ms** | 0% | Lightning Fast        |
-| **High Load** | 250 | 20 | ~120 | **64ms** | 0% | Highly Scalable       |
-| **Stress Test** | 1000 | 50 | ~255 | 1150ms | **0%** |  Extremely Resilient  |
+| **Normal Load** | 50 | 5 | ~24 | **52ms** | **0%** | Lightning Fast        |
+| **High Load** | 250 | 20 | ~120 | **64ms** | **0%** | Highly Scalable       |
+| **Stress Test** | 2100 | 10 | ~646 | **473ms** | **0%** |  Extremely Resilient  |
 
 ### Key Findings
 1.  **Zero Downtime:** The system maintained a **0% failure rate** across all scenarios, proving the stability of the Kubernetes deployment.
@@ -117,7 +117,7 @@ To ensure reliability and scalability, the application was subjected to rigorous
 ### Evidence
 ![Load Test Results](docs/load_test/load_test_results_50.png)
 ![Load Test Results](docs/load_test/load_test_results_250.png)
-![Load Test Results](docs/load_test/load_test_results_1000.png)
+![Load Test Results](docs/load_test/load_test_results_2100.png)
 *(Screenshot from Locust dashboard showing 0% failures and response time trends)*
 
 ---
