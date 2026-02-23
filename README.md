@@ -56,7 +56,18 @@ graph LR
 * etl-worker: An automated service that runs on startup to ingest & embed data if the DB is empty.
 
 ---
+## 🔄 Continuous Deployment with GitOps (ArgoCD)
 
+To ensure high availability and eliminate manual deployment bottlenecks, this project fully embraces the **GitOps** philosophy using **ArgoCD**.
+
+* **Single Source of Truth:** The GitHub repository acts as the sole source of truth for the desired cluster state.
+* **Automated Synchronization:** Any modifications to the Helm charts or configuration files in the repository are automatically detected and reconciled by ArgoCD.
+* **Declarative Infrastructure:** Cluster state, deployments, and services are managed declaratively, completely replacing manual `kubectl` or `helm` interventions.
+
+![ArgoCD Topology Tree](docs/gitops/argocd_topology.png)
+*(ArgoCD automatically syncing the H&M Recommender application state from GitHub to the local Kubernetes cluster)*
+
+---
 ## 📊 System Monitoring
 Real-time API metrics tracked via **Prometheus** and visualized on **Grafana**.
 - **Left:** Average Latency (~2ms response time thanks to Redis caching).
