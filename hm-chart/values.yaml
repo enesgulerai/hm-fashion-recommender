@@ -1,6 +1,6 @@
 # --- BACKEND FastAPI ---
 backend:
-  replicaCount: 1
+  replicaCount: 2
   image:
     repository: enesgulerml/hm-backend
     tag: latest
