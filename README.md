@@ -3,11 +3,13 @@
 ![Python](https://img.shields.io/badge/Python-3.10-blue?style=for-the-badge&logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688?style=for-the-badge&logo=fastapi)
 ![Qdrant](https://img.shields.io/badge/Vector_DB-Qdrant-d50000?style=for-the-badge)
-![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker)
 ![Streamlit](https://img.shields.io/badge/Frontend-Streamlit-FF4B4B?style=for-the-badge&logo=streamlit)
 ![Redis](https://img.shields.io/badge/Redis-Caching-DC382D?style=for-the-badge&logo=redis&logoColor=white)
 ![Prometheus](https://img.shields.io/badge/Monitoring-Prometheus-E6522C?style=for-the-badge&logo=prometheus)
 ![Kubernetes](https://img.shields.io/badge/kubernetes-%23326ce5.svg?style=for-the-badge&logo=kubernetes&logoColor=white)
+[![Helm](https://img.shields.io/badge/Helm-0F1689?style=for-the-badge&logo=helm&logoColor=white)](https://helm.sh/)
+[![ArgoCD](https://img.shields.io/badge/ArgoCD-EF7B4D?style=for-the-badge&logo=argo&logoColor=white)](https://argo-cd.readthedocs.io/)
+![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker)
 
 > **"I need a red dress for a summer wedding."** -> *Retrieves visually and semantically similar items in milliseconds.*
 
@@ -17,185 +19,130 @@ This project implements an **End-to-End MLOps pipeline** for a real-time fashion
   <img src="docs/images/streamlit_usage.gif" alt="Project Demo" width="700">
 </p>
 
----
+# Session: Architecture, Impact & Proof
+*This section highlights the system design, performance benchmarks, and deployment strategies.*
 
-## 🌟 Key Features
-
-* **High-Performance Architecture:** Uses **Redis** for caching frequent queries, reducing API latency by ~40%.
-* **Production-Grade Docker:** Implements **Multi-Stage Builds** for smaller images and enforces **Non-Root User** security policies.
-* **Hybrid Search:** Combines Vector Search (Qdrant) with metadata filtering.
-* **Observability:** Real-time monitoring of RPS, Latency, and Memory usage via **Prometheus & Grafana**.
-* **Modular Design:** Decoupled architecture with `src/pipelines`, `src/api`, and `src/ui` modules using Interface Segregation principles.
-
----
-
-## 🏗️ Architecture (Microservices)
-
-The system is designed with scalability in mind, fully containerized using Docker Compose.
+## 🏗️ Microservices Architecture
+The system is designed with scalability in mind, fully decoupled into independent microservices.
 
 ```mermaid
 graph LR
-    U[User] -->|Natural Language Query| F["Frontend (Streamlit)"]
-    F -->|REST API Request| B["Backend API (FastAPI)"]
+    U[👤 User / Locust Test]
+    Git[🐙 GitHub Repository]
+
+    subgraph "Kubernetes Cluster (Minikube / AWS)"
+        
+        Argo[⚙️ ArgoCD] 
+        
+        F["🖥️ Frontend (Streamlit)"]
+        B["⚡ Async Backend (FastAPI)"]
+        
+        R[("🔥 Redis Cache")]
+        Q[("🧠 Qdrant Vector DB")]
+        
+        M[📈 Prometheus]
+        G[📊 Grafana]
+    end
+
+    Git -.->|Reads Helm & Configs| Argo
+    Argo -.->|Syncs Cluster State| F
+    Argo -.->|Syncs Cluster State| B
+
+    U -->|Natural Language Query| F
+    F -->|REST API Request| B
     
-    B -->|Check Cache| R[("Redis Cache")]
-    R -.->|Cache Hit - Instant| B
-    B -->|Cache Miss / Vector Search| Q[("Qdrant Vector DB")]
+    B -->|1. Check Cache| R
+    R -.->|Cache Hit <2ms| B
+    B -->|2. Vector Search| Q
     Q -->|Top-K Candidates| B
     
     B -->|JSON Response| F
     F -->|Product Cards| U
     
-    M[Prometheus] -.->|Scrape Metrics| B
-    G[Grafana] -.->|Visualize| M
+    M -.->|Scrapes Async Metrics| B
+    G -.->|Visualizes| M
+
+    classDef cluster fill:#f9f9f9,stroke:#333,stroke-width:2px;
+    classDef gitops fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
+    class Argo,Git gitops;
 ```
-* frontend: Streamlit-based interactive UI for users.
-* backend: High-performance FastAPI service handling logic & orchestration.
-* qdrant: Vector Database storing 100K+ product embeddings for low-latency retrieval.
-* redis: In-memory key-value store for caching search results.
-* etl-worker: An automated service that runs on startup to ingest & embed data if the DB is empty.
 
----
-## 🔄 Continuous Deployment with GitOps (ArgoCD)
+## ⚡ High-Performance API & Reliability
+The backend was completely refactored to an asynchronous architecture to prevent blocking during AI model inference and database operations.
 
-To ensure high availability and eliminate manual deployment bottlenecks, this project fully embraces the **GitOps** philosophy using **ArgoCD**.
+* **Redis Caching:** Slashes inference latency to <2ms on cache hits.
 
-* **Single Source of Truth:** The GitHub repository acts as the sole source of truth for the desired cluster state.
-* **Automated Synchronization:** Any modifications to the Helm charts or configuration files in the repository are automatically detected and reconciled by ArgoCD.
-* **Declarative Infrastructure:** Cluster state, deployments, and services are managed declaratively, completely replacing manual `kubectl` or `helm` interventions.
+![Redis Test Results](docs/grafana/redis.png)
+
+* **Extreme Stress Tested:** Validated via Locust on a local Kubernetes cluster.
+
+* **Results:** Sustained 646 RPS (~2.3M requests/hour) under 2,100 concurrent users with a 0% error rate.
+
+![Load Test Results](docs/load_test/load_test_results_2100.png)
+
+## 🔄 GitOps & Continuous Deployment (ArgoCD)
+To eliminate manual deployment bottlenecks, this project fully embraces the GitOps philosophy. The cluster state is entirely declarative and managed via Helm charts.
+
+* **Single Source of Truth:** Any changes to the GitHub repository automatically trigger a synchronization.
 
 ![ArgoCD Topology Tree](docs/gitops/argocd_topology.png)
-*(ArgoCD automatically syncing the H&M Recommender application state from GitHub to the local Kubernetes cluster)*
 
----
-## 📊 System Monitoring
-Real-time API metrics tracked via **Prometheus** and visualized on **Grafana**.
-- **Left:** Average Latency (~2ms response time thanks to Redis caching).
-- **Right:** Real-time request throughput.
+* **Zero-Downtime:** ArgoCD reconciles the cluster state without manual kubectl interventions.
 
-![Dashboard](docs/images/dashboard.png)
+## 📊 Observability & Drift Monitoring
+Comprehensive monitoring stacks are integrated to track both system health and machine learning metrics.
 
-## 📉 Real-Time Drift Monitoring
-![Evidently Dashboard](docs/evidently/evidently_drift_dashboard.png)
+* **Prometheus & Grafana:** Real-time API throughput, latency, and memory tracking.
 
----
+* **Evidently AI:** Real-time Data Drift monitoring for the embedding model.
 
-## 🚀 Quick Start (Docker)
-You don't need to install Python or libraries manually.
+![Evidentyl AI](docs/evidently/evidently_drift_dashboard.png)
 
-### 1. Clone the Repository
+## ☁️ Cloud Deployment (AWS)
+The project is not just local; it is fully capable of running in the cloud. It was successfully deployed on an AWS EC2 (t3.small) instance utilizing K3s (Lightweight Kubernetes).
+
+![AWS](docs/aws/hm-aws-inbound-rules.png)
+
+![AWS](docs/aws/hm-aws-instance.png)
+
+![AWS](docs/aws/hm-aws-streamlit.gif)
+
+# Session: Developer Guide 
+Instructions for reproducing the environment, running tests, and deploying the system locally.
+
+## 🚀 Quick Start (Docker Compose)
+The easiest way to run the project. You don't need Python installed locally, just Docker and Make.
+
 ```bash
+    # 1. Clone the Repository
     git clone https://github.com/enesgulerml/hm-fashion-recommender.git
     cd hm-fashion-recommender
-```
 
-### 2. Run the System
-We have automated the entire process (Data Download -> Embedding -> Vector DB Indexing).
-```bash
+    # 2. Run the System (Automates Data Ingestion -> Embedding -> DB Indexing)
     make run
-```
-**Note:** If you don't have make installed (e.g., standard Windows CMD), you can use the raw command:
-```bash
+    # Note: If you don't have make installed (e.g., standard Windows CMD), you can use the raw command:
     docker-compose up -d --build
-```
 
-### 3. Stop the System
-```bash
+    # 3. Stop the System
     make stop
 ```
 
----
+## ☸️ Kubernetes Deployment (Local)
+For testing the production-ready Helm charts and Kubernetes manifests locally (requires Docker Desktop K8s or Minikube).
 
-## 🚀 Performance & Load Testing
+```bash 
+    # Deploy the entire stack
+    make k8s-deploy
 
-To ensure reliability and scalability, the application was subjected to rigorous load testing using **Locust** on a local Kubernetes cluster.
-
-### Benchmark Results
-
-* **Environment:** Local Docker Desktop (Docker Compose)
-
-| Scenario | Concurrent Users | Spawn Rate | RPS (Req/Sec) | Avg Latency | Error Rate | Verdict               |
-| :--- | :--- | :--- | :--- | :--- | :--- |:----------------------|
-| **Normal Load** | 50 | 5 | ~24 | **52ms** | **0%** | Lightning Fast        |
-| **High Load** | 250 | 20 | ~120 | **64ms** | **0%** | Highly Scalable       |
-| **Stress Test** | 2100 | 10 | ~646 | **473ms** | **0%** |  Extremely Resilient  |
-
-### Key Findings
-1.  **Zero Downtime:** The system maintained a **0% failure rate** across all scenarios, proving the stability of the Kubernetes deployment.
-2.  **Linear Scalability:** Increasing the load from 50 to 250 users resulted in only a **12ms increase** in latency, demonstrating efficient resource utilization by the inference pipeline.
-3.  **Resilience:** Under extreme stress (1000 users), the system handled **250+ requests per second** without crashing, utilizing queueing mechanisms effectively despite hardware limitations.
-
-### Evidence
-![Load Test Results](docs/load_test/load_test_results_50.png)
-![Load Test Results](docs/load_test/load_test_results_250.png)
-![Load Test Results](docs/load_test/load_test_results_2100.png)
-*(Screenshot from Locust dashboard showing 0% failures and response time trends)*
-
----
-
-## ☸️ Kubernetes Deployment (Production-Ready)
-
-This project includes fully configured Kubernetes manifests for scalable deployment.
-
-### Prerequisites
-- Docker Desktop (with Kubernetes enabled) OR Minikube
-- `kubectl` CLI installed
-
-### Quick Start with K8s
-Instead of Docker Compose, you can deploy the entire stack to a local Kubernetes cluster. You need to enable Kubernetes on your Docker Desktop:
-
-1. **Deploy the System:**
-   ```bash
-   make k8s-deploy
-   ```
-Access the UI at: http://localhost:30001
-
-2. **Ingest Data (ETL Job):** Run the data ingestion pipeline as a Kubernetes Job:
-    ```bash
+    # Run the automated Data Ingestion Job
     make k8s-ingest
-    ```
- 
-3. **Teardown:** To remove all resources (Deployments, Services, PVCs):
-    ```bash
+
+    # Teardown all K8s resources
     make k8s-stop
-    ```
-
----
-
-## 🛠️ Tech Stack & Engineering Decisions
-
-| Component | Technology | Engineering Decision (Why?) |
-| :--- | :--- | :--- |
-| **Embeddings** | `all-MiniLM-L6-v2` | Selected for the best trade-off between inference speed (CPU-friendly) and semantic accuracy for search tasks. |
-| **Vector DB** | **Qdrant** | Chosen for its Rust-based high performance, native Docker support, and ease of use compared to heavier alternatives. |
-| **Backend API** | **FastAPI** | Utilized for its asynchronous capabilities (handling concurrent requests efficiently) and automatic Swagger UI generation. |
-| **Containerization** | **Docker & Compose** | Ensures 100% reproducibility. **Security optimization:** Runs as non-root user. |
-| **Data Proc** | **Pandas (Chunking)** | Implemented memory-efficient chunking strategies to process large datasets without OOM errors. |
-| **Monitoring** | **Prometheus/Grafana** | Added to track API health, throughput, and latency in a production simulation. |
-
----
-
-## 📂 Project Structure
-
-```text
-├── config/             # Centralized configuration files (YAML)
-├── .github/            # CI/CD Operations
-├── docker/             # Dockerfiles
-├── k8s/                # Kubernetes Operations
-├── src/
-│   ├── api/            # FastAPI application (app.py)
-│   ├── ui/             # Streamlit Dashboard (dashboard.py)
-│   ├── pipelines/      # Logic for Inference & Ingestion
-│   └── utils/          # Logger & Helper functions
-├── tests/              # Pytest integration tests
-├── docker-compose.yml  # Orchestration of services
-└── README.md           # Documentation
 ```
 
----
-
-## 🔗 Service Access Points (Quick Links)
-Once Docker is running, you can access all microservices via these links:
+## 🔗 Service Access Points
+Once the system is up, you can access the microservices here:
 
 | Service          | URL | Default Credentials | Description |
 |:-----------------| :--- | :--- | :--- |
@@ -203,64 +150,22 @@ Once Docker is running, you can access all microservices via these links:
 | **API Docs**     | [**http://localhost:8001/docs**](http://localhost:8001/docs) | - | Interactive Swagger UI to test API endpoints. |
 | **Grafana**      | [**http://localhost:3001**](http://localhost:3001) | `admin` / `admin` | Real-time dashboards for metrics visualization. |
 | **Prometheus** | [**http://localhost:9091**](http://localhost:9091) | - | Raw metrics scraping and querying interface. |
+| **Kubernetes UI** | [**http://localhost:30001**](http://localhost:30001) | - | Main Streamlit interface exposed via K8s NodePort. Use this for cluster deployments. |
 
----
 
-## ☁️ Deployment & Live Demo
-
-This project is deployed on **AWS EC2** using **Kubernetes (K3s)**.
-The infrastructure creates a scalable environment for the ML model and vector database.
-
-### Live Preview
-![App Demo](docs/aws/hm-aws-streamlit.gif)
-
-### Infrastructure Details
-* **Cloud Provider:** AWS (eu-central-1)
-* **Instance Type:** t3.small
-* **Orchestration:** K3s (Lightweight Kubernetes)
-* **Networking:** NodePort Service exposed on port `30001`
-
-| AWS Instance | Security Configuration |
-| :---: | :---: |
-| ![AWS EC2 Instance](docs/aws/hm-aws-instance.png) | ![AWS Security Groups](docs/aws/hm-aws-inbound-rules.png) |
-
----
-
-## 🧪 Running Tests
-You don't need to install Python or dependencies locally. The test suite runs inside a Docker container to ensure consistency across all environments.
-
-### Local Development Setup
-
-Before running tests or the application, please set up your virtual environment:
-
-```bash
-    # 1. Create a virtual environment named .venv
-    # On Linux/macOs:
-    python3 -m venv .venv
-    # On Windows:
+## 🧪 Local Development & Testing
+If you want to run the tests or develop locally outside of Docker:
+```bash 
+    # 1. Setup Virtual Environment
     python -m venv .venv
-    
-    # 2. Activate the environment
-    # On Linux/macOS:
-    source .venv/bin/activate
-    # On Windows:
-    .venv\Scripts\activate
-    
-    # 3. Install dependencies
+    source .venv/bin/activate  # Or .venv\Scripts\activate on Windows
+
+    # 2. Install Dependencies
     pip install -r requirements.txt
-    
-    # 4. Run unit tests
+
+    # 3. Run the Pytest Suite
     make test
 ```
-
-**Test Coverage:**
-
-* Health Check: Verifies if the API core is up and running. 
-* Recommendation Logic: Simulates a user query and validates the mapping of search results. 
-* Input Validation: Ensures the API handles invalid or too short queries correctly (HTTP 422). 
-* Pipeline Flow: Mocks the Embedding Model and Qdrant client to verify the internal data transformation flow.
-
----
 
 ## 👨‍💻 Author
 **Enes Guler** - MLOps Engineer
