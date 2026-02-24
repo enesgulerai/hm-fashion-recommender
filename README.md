@@ -167,5 +167,27 @@ If you want to run the tests or develop locally outside of Docker:
     make test
 ```
 
+# 🛠️ Troubleshooting & Common Issues
+
+**1. `make: command not found` (Windows Users)**
+* **Symptom:** PowerShell or CMD throws an error that `make` is not recognized.
+* **Solution:** Windows does not come with `make` pre-installed. You have two options:
+  * **Option A (Bypass):** Run the raw Docker command instead: `docker compose up -d --build`
+  * **Option B (Install):** Install `make` via Windows package managers:
+    * `winget install ezwinports.make` OR `choco install make`
+
+**2. Docker Daemon is Not Running**
+* **Symptom:** `error during connect: This error may indicate that the docker daemon is not running.`
+* **Solution:** Ensure Docker Desktop is launched and the Docker engine is running in the background before executing the Makefile.
+
+**3. Port is Already Allocated**
+* **Symptom:** `Bind for 0.0.0.0:8001 failed: port is already allocated.`
+* **Solution:** Another service on your machine is using one of the required ports (8001, 8502, 6333, etc.). You can either stop that service or modify the port mappings in the `docker-compose.yml` file.
+
+**4. Out of Memory (OOM) Errors (Qdrant or Embeddings)**
+* **Symptom:** The `etl-worker` or `qdrant` container crashes unexpectedly during startup.
+* **Solution:** Processing 100K+ embeddings can be memory-intensive. Ensure your Docker Desktop is allocated at least **4GB to 6GB of RAM** in its settings.
+
+
 ## 👨‍💻 Author
 **Enes Guler** - MLOps Engineer
