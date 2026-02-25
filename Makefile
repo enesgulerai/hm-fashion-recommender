@@ -23,7 +23,7 @@ help:
 	@echo " ===== Kubernetes ====="
 	@echo "  make k8s-build : Builds the entire system on K8s (Build)."
 	@echo "  make k8s-deploy : Installs the entire system on K8s (Build + Apply)."
-	@echo "  make k8s-ingest : Starts the ETL job (Data Loading) on the K8s."
+	@echo "  make k8s-logs-etl : Starts the ETL job (Data Loading) on the K8s."
 	@echo "  make k8s-stop   : It deletes all K8s resources."
 	@echo "======================================================================"
 
