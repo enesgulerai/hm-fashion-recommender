@@ -21,6 +21,7 @@ help:
 	@echo "  make clean  : Clears cache files."
 	@echo "  make test   : It runs unit tests."
 	@echo " ===== Kubernetes ====="
+	@echo "  make k8s-build : Builds the entire system on K8s (Build)."
 	@echo "  make k8s-deploy : Installs the entire system on K8s (Build + Apply)."
 	@echo "  make k8s-ingest : Starts the ETL job (Data Loading) on the K8s."
 	@echo "  make k8s-stop   : It deletes all K8s resources."
@@ -72,43 +73,16 @@ k8s-build:
 	docker build -t hm-etl:latest -f docker/backend/Dockerfile .
 
 k8s-deploy: k8s-build
-	@echo "Deploying to Kubernetes..."
-	@echo "1. Infrastructure and Discs"
-	kubectl apply -f $(K8S_DIR)/infrastructure/
-	@echo "2. Databases"
-	kubectl apply -f $(K8S_DIR)/databases/
-	@echo "Waiting for databases to be ready..."
-	kubectl wait --for=condition=available --timeout=120s deployment/redis deployment/qdrant
-	@echo "3. Applications"
-	kubectl apply -f $(K8S_DIR)/apps/
-	@echo "Deployment complete! Frontend: http://localhost:30001"
+	@echo "Deploying Full System & Auto-Running ETL via Helm..."
+	helm upgrade --install hm-recommender ./hm-chart
+	@echo "Deployment triggered! Helm will handle DB warmups and start the ETL Job."
+	@echo "Frontend will be available at: http://localhost:30001"
 
-k8s-ingest:
-	@echo "Starting ETL Job..."
-	-kubectl delete job etl-ingestion --ignore-not-found=true --wait=true
-
-	kubectl apply -f k8s/jobs/ingestion.yaml
-
-	@echo "Logs for ETL (Press Ctrl+C to exit):"
-	kubectl logs -l job-name=etl-ingestion -f --pod-running-timeout=30s
-
-k8s-run:
-	@echo "Starting Full Kubernetes Deployment..."
-
-	@echo "Deploying Infrastructure & DBs..."
-	make k8s-deploy
-
-	@echo "Waiting 30s for Databases to warm up..."
-	kubectl wait --for=condition=available --timeout=60s deployment/redis deployment/qdrant
-
-	@echo "Starting ETL Job (Data Ingestion)..."
-	make k8s-ingest
-
-	@echo "All systems GO! Visit: http://localhost:30001"
+k8s-logs-etl:
+	@echo "Tailing ETL Ingestion Logs (Press Ctrl+C to exit)..."
+	kubectl logs -l job-name=etl-ingestion -f --pod-running-timeout=60s
 
 k8s-stop:
-	@echo "Stopping Kubernetes resources..."
-	kubectl delete -f $(K8S_DIR)/apps/ --ignore-not-found
-	kubectl delete -f $(K8S_DIR)/databases/ --ignore-not-found
-	kubectl delete -f $(K8S_DIR)/infrastructure/ --ignore-not-found
-	kubectl delete -f $(K8S_DIR)/jobs/ --ignore-not-found
+	@echo "Stopping and destroying all Kubernetes resources..."
+	helm uninstall hm-recommender
+	-kubectl delete job etl-ingestion --ignore-not-found=true
