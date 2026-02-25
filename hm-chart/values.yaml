@@ -55,9 +55,9 @@ config:
 
 # --- ETL ---
 ingestion:
-  enabled: false
+  enabled: true
   ttlSecondsAfterFinished: 600
   image:
-    repository: enesgulerml/hm-etl
+    repository: hm-etl
     tag: latest
     pullPolicy: IfNotPresent
