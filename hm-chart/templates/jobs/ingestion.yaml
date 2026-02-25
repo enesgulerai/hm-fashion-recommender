@@ -3,8 +3,12 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: etl-ingestion
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
 spec:
   ttlSecondsAfterFinished: {{ .Values.ingestion.ttlSecondsAfterFinished }}
+  backoffLimit: 1
   template:
     spec:
       containers:
