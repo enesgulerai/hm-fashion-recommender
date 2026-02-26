@@ -9,8 +9,6 @@ description = "H&M Recommendation System - End-to-End MLOps Refactoring"
 authors = [{name = "Enes Guler", email = "enesguler.ml@gmail.com"}]
 requires-python = ">=3.10"
 dependencies = [
-    # Buraya ana bağımlılıkları yazabilirsin veya
-    # requirements.txt kullanmaya devam edeceksen burayı şimdilik dinamik bırakabiliriz.
 ]
 
 [tool.black]
@@ -24,9 +22,14 @@ multi_line_output = 3
 line_length = 88
 
 [tool.pytest.ini_options]
-addopts = "-p no:cacheprovider"
+addopts = "-v --cov=src --cov-report=term-missing -p no:cacheprovider"
 pythonpath = "."
 testpaths = ["tests"]
+
+asyncio_mode = "auto"
+
+strict_markers = true
+
 filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::UserWarning",
