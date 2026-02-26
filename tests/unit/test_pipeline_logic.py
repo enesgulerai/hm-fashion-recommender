@@ -1,6 +1,9 @@
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
+
 from src.pipelines.inference_pipeline import InferencePipeline
+
 
 # --- TEST 1: Initialization Verification ---
 @patch("src.pipelines.inference_pipeline.QdrantClient")
@@ -15,7 +18,7 @@ def test_pipeline_initialization(mock_encoder, mock_qdrant):
     # We guarantee not just that it was called, but that it was called only once (there should be no performance leakage).
     mock_qdrant.assert_called_once()
     mock_encoder.assert_called_once()
-    
+
     # Prove that the class variables are assigned correctly.
     assert pipeline.client == mock_qdrant.return_value
     assert pipeline.encoder == mock_encoder.return_value
@@ -40,7 +43,10 @@ def test_search_logic_success(mock_encoder, mock_qdrant):
     # 2. Qdrant Mock: Returns a fake result.
     mock_hit = MagicMock()
     mock_hit.score = 0.95
-    mock_hit.payload = {"prod_name": "Premium Dress", "detail_desc": "Summer collection"}
+    mock_hit.payload = {
+        "prod_name": "Premium Dress",
+        "detail_desc": "Summer collection",
+    }
     pipeline.client.search.return_value = [mock_hit]
 
     # Action
@@ -67,10 +73,10 @@ def test_search_logic_empty_results(mock_encoder, mock_qdrant):
     Expected: The code should safely return an empty list instead of crashing.
     """
     pipeline = InferencePipeline()
-    pipeline.client.search.return_value = [] # Qdrant returned empty.
+    pipeline.client.search.return_value = []  # Qdrant returned empty.
 
     results = pipeline.search_products("asdfghjkl", top_k=5)
-    
+
     assert results == []
 
 
@@ -86,5 +92,5 @@ def test_search_logic_qdrant_failure(mock_encoder, mock_qdrant):
     pipeline.client.search.side_effect = Exception("Qdrant Connection Timeout")
 
     results = pipeline.search_products("shoes", top_k=2)
-    
+
     assert results == []
