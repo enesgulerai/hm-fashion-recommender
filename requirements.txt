@@ -3,7 +3,7 @@
 -r src/api/requirements.txt
 -r src/ui/requirements.txt
 
-pytest==8.0.0
+pytest==9.0.2
 black==26.1.0
 isort==7.0.0
 gdown==5.2.1
