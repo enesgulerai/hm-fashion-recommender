@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      - 'README.md'
-      - 'docs/**'
+  paths-ignore:
+    - 'README.md'
+    - 'docs/**'
 
 jobs:
   build-and-push:
@@ -15,6 +15,18 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # --- 1. MODEL PRODUCTION PHASE ---
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies and Build ONNX Model
+        run: |
+          pip install -r requirements-build.txt
+          python -m src.models.export_onnx
+
+      # --- 2. DOCKER ---
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -45,29 +57,3 @@ jobs:
           tags: enesgulerml/hm-frontend:latest
           cache-from: type=registry,ref=enesgulerml/hm-frontend:latest
           cache-to: type=inline
-
-  deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to AWS via SSH
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
-          script: |
-            echo "Starting Deployment..."
-            
-            cd /home/ubuntu/hm-fashion-recommender
-            git pull origin main
-            
-
-            kubectl apply -f k8s/apps/
-            
-            echo "Rolling out restart..."
-            kubectl rollout restart deployment backend
-            kubectl rollout restart deployment frontend
-            
-            echo "Deployment Triggered! Watch pods with: kubectl get pods -w"
