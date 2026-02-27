@@ -1,99 +1,84 @@
 import os
-import sys
-
+import numpy as np
+import onnxruntime as ort
+from transformers import AutoTokenizer
 from qdrant_client import QdrantClient
-from sentence_transformers import SentenceTransformer
 
-# Relative import to access the config reader
 from ..utils.common import read_config
 from ..utils.logger import logger
 
 
 class InferencePipeline:
     def __init__(self, config_path="config/config.yaml"):
-        """
-        Initializes the Inference Pipeline.
-        Optimization: Loads the heavy AI model ONLY ONCE during startup.
-        Hybrid Config: Prioritizes Environment Variables (Docker) over config.yaml.
-        """
-        # 1. Load Configuration
         self.config = read_config(config_path)
-
-        # 2. Setup Qdrant Connection Settings
         self.qdrant_host = os.getenv("QDRANT_HOST", self.config["qdrant"]["host"])
         self.qdrant_port = int(os.getenv("QDRANT_PORT", self.config["qdrant"]["port"]))
         self.collection_name = self.config["qdrant"]["collection_name"]
 
-        logger.info(
-            f"🔌 Connecting to Qdrant at {self.qdrant_host}:{self.qdrant_port}..."
+        logger.info(f"Connecting to Qdrant at {self.qdrant_host}:{self.qdrant_port}...")
+        self.client = QdrantClient(host=self.qdrant_host, port=self.qdrant_port)
+        logger.info("Connected to Qdrant successfully!")
+
+        self.model_path = "onnx_model"
+        logger.info(f"Loading ONNX F1 Engine from: {self.model_path}...")
+
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
+        self.session = ort.InferenceSession(
+            f"{self.model_path}/model.onnx", providers=["CPUExecutionProvider"]
+        )
+        logger.info("ONNX Model Loaded! Ready to fly.")
+
+    def encode_text(self, text: str) -> list[float]:
+        """Metni saf NumPy ve ONNX kullanarak vektöre çevirir (Mean Pooling)."""
+        encoded_input = self.tokenizer(
+            text, padding=True, truncation=True, return_tensors="np"
         )
 
+        # --- KRİTİK FİLTRELEME VE TİP DÖNÜŞTÜRME (int64 Fix) ---
+        model_inputs = [i.name for i in self.session.get_inputs()]
+
+        # Windows'ta int32 olan tipleri ONNX'in beklediği int64'e zorluyoruz
+        ort_inputs = {
+            k: v.astype(np.int64) for k, v in encoded_input.items() if k in model_inputs
+        }
+
+        ort_outputs = self.session.run(None, ort_inputs)
+        token_embeddings = ort_outputs[0]
+        attention_mask = encoded_input["attention_mask"]
+
+        # Mean Pooling
+        mask_expanded = np.expand_dims(attention_mask, -1)
+        sum_embeddings = np.sum(token_embeddings * mask_expanded, axis=1)
+        sum_mask = np.clip(np.sum(mask_expanded, axis=1), a_min=1e-9, a_max=None)
+        embeddings = sum_embeddings / sum_mask
+
+        # L2 Normalization
+        norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
+        embeddings = embeddings / np.maximum(norms, 1e-9)
+
+        return embeddings[0].tolist()
+
+    def search_products(self, query_text: str, top_k: int = 3):
+        logger.info(f"SEARCHING: '{query_text}'")
         try:
-            self.client = QdrantClient(host=self.qdrant_host, port=self.qdrant_port)
-            logger.info("✅ Connected to Qdrant successfully!")
-        except Exception as e:
-            logger.warning(
-                f"⚠️ WARNING: Could not connect to Qdrant at {self.qdrant_host}:{self.qdrant_port}. Error: {e}"
-            )
-
-        # 3. Load AI Model
-        self.model_name = self.config["model"]["name"]
-        logger.info(f"🚀 Loading AI Model: {self.model_name}...")
-
-        self.encoder = SentenceTransformer(self.model_name)
-        logger.info("✅ AI Model Loaded!")
-
-    def search_products(self, query_text, top_k=5):
-        """
-        Performs semantic search for the given query.
-        Returns a list of dictionaries (compatible with API response).
-        """
-        logger.info(f"🔎 SEARCHING: '{query_text}'")
-
-        try:
-            # 1. TRANSLATION: Text -> Vector
-            query_vector = self.encoder.encode(query_text).tolist()
-
-            # 2. SEARCH: Query Qdrant
+            query_vector = self.encode_text(query_text)
             search_result = self.client.search(
                 collection_name=self.collection_name,
                 query_vector=query_vector,
                 limit=top_k,
             )
-
-            # 3. FORMAT RESULTS
             results = []
             for hit in search_result:
-                product_data = {
-                    "score": hit.score,
-                    "product_name": hit.payload.get("prod_name", "Unknown"),
-                    "description": hit.payload.get("detail_desc", ""),
-                    "category": hit.payload.get("product_group_name", "Unknown"),
-                    "details": hit.payload,
-                }
-                results.append(product_data)
-
+                results.append(
+                    {
+                        "score": hit.score,
+                        "product_name": hit.payload.get("prod_name", "Unknown"),
+                        "description": hit.payload.get("detail_desc", ""),
+                        "category": hit.payload.get("product_group_name", "Unknown"),
+                        "details": hit.payload,
+                    }
+                )
             return results
-
         except Exception as e:
-            logger.error(f"❌ Error during search: {e}")
+            logger.error(f"Error during search: {e}")
             return []
-
-
-if __name__ == "__main__":
-    # --- SMOKE TEST ---
-    print("running smoke test...")
-    pipeline = InferencePipeline()
-
-    test_queries = [
-        "I want to go to the beach",
-        "Something for running and gym",
-    ]
-
-    for query in test_queries:
-        results = pipeline.search_products(query)
-        print("-" * 50)
-        print(f"Query: {query}")
-        for i, item in enumerate(results):
-            print(f"{i + 1}. {item['product_name']} (Score: {item['score']:.4f})")
-    print("-" * 50)
