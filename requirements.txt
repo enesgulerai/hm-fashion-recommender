@@ -7,7 +7,6 @@ pytest==9.0.2
 black==26.1.0
 isort==7.0.0
 gdown==5.2.1
-sentence-transformers==3.0.1
 evidently==0.4.19
 ujson==5.9.0
 pytest-cov==7.0.0

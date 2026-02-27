@@ -1,5 +1,7 @@
-# --- AI Core (CPU Optimized & Secured) ---
---extra-index-url https://download.pytorch.org/whl/cpu
+# --- AI Core (ONNX Optimized - No PyTorch) ---
+onnxruntime==1.18.0
+transformers==4.41.0
+numpy==1.26.4
 
 # --- API Server ---
 fastapi==0.111.0
@@ -13,7 +15,6 @@ redis==5.0.4
 
 # --- Data Processing ---
 pandas==2.2.2
-numpy==1.26.4
 requests==2.32.3
 gdown==5.2.1
 evidently==0.4.19
