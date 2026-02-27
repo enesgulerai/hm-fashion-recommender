@@ -2,12 +2,12 @@
 backend:
   replicaCount: 2
   image:
-    repository: enesgulerml/hm-backend
+    repository: hm-backend
     tag: latest
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
-    port: 8000
+    port: 8001
 
 # --- FRONTEND Streamlit ---
 frontend:
@@ -16,6 +16,9 @@ frontend:
     repository: enesgulerml/hm-frontend
     tag: latest
     pullPolicy: IfNotPresent
+  env:
+    - name: BACKEND_URL
+      value: "http://backend-service:8001"
   service:
     type: NodePort
     port: 8501

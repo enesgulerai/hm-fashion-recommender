@@ -82,15 +82,15 @@ services:
     networks:
       - hm_network
 
-  # 6. BACKEND API
+# 6. BACKEND API (F1 Engine - ONNX)
   backend:
-    image: enesgulerml/hm-backend:latest
+    image: enesgulerml/hm-backend:onnx-final
     build:
       context: .
       dockerfile: docker/backend/Dockerfile
     container_name: hm_api
     ports:
-      - "8001:8000"
+      - "8001:8001" # Portları eşitledik: 8001 -> 8001
     depends_on:
       qdrant:
         condition: service_healthy
@@ -98,14 +98,17 @@ services:
         condition: service_healthy
     environment:
       - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
       - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - BACKEND_URL=http://backend:8001
     volumes:
       - ./logs:/app/logs
     restart: always
     networks:
       - hm_network
 
-  # 7. FRONTEND
+# 7. FRONTEND (Streamlit)
   frontend:
     image: enesgulerml/hm-frontend:latest
     build:
@@ -113,11 +116,11 @@ services:
       dockerfile: docker/frontend/Dockerfile
     container_name: hm_ui
     ports:
-      - "8502:8501"
+      - "8502:8501" # Dışarıdan 8502, içeriden 8501
     depends_on:
       - backend
     environment:
-      - BACKEND_URL=http://backend:8000
+      - BACKEND_URL=http://backend:8001 # BURASI KRİTİK: Backend artık 8001'de yaşıyor
     restart: always
     networks:
       - hm_network
