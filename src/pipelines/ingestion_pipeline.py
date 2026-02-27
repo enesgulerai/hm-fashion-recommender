@@ -1,14 +1,16 @@
 import os
+
 import gdown
-import pandas as pd
 import numpy as np
+import pandas as pd
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
 from tqdm import tqdm
 
+from ..utils.common import read_config
+
 # Bizim yeni F1 motorumuzu içeri alıyoruz
 from .inference_pipeline import InferencePipeline
-from ..utils.common import read_config
 
 
 class IngestionPipeline:

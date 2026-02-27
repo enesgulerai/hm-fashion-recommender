@@ -1,8 +1,9 @@
 import os
+
 import numpy as np
 import onnxruntime as ort
-from transformers import AutoTokenizer
 from qdrant_client import QdrantClient
+from transformers import AutoTokenizer
 
 from ..utils.common import read_config
 from ..utils.logger import logger
