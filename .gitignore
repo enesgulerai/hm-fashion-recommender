@@ -34,7 +34,7 @@ qdrant_storage/
 */.ipynb_checkpoints/*
 
 # --- ML & Models (Safety Net) ---
-models/
+onnx_model/
 checkpoints/
 *.pt
 *.pth
