@@ -64,7 +64,7 @@ async def lifespan(app: FastAPI):
         redis_client = redis.Redis(
             host=redis_host, port=6379, db=0, decode_responses=True
         )
-        await redis_client.ping()  # Asenkron ping
+        await redis_client.ping()
         logger.info(f"Redis Connection Established on {redis_host}!")
     except Exception as e:
         logger.warning(f"Redis Connection Failed: {e}. Caching disabled.")

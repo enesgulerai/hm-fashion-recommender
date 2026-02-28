@@ -20,10 +20,8 @@ ENV PYTHONPATH="${PYTHONPATH}:/app"
 RUN apt-get update && apt-get install -y libgomp1 && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /opt/venv /opt/venv
 
-# 1. Config
 COPY ../../config ./config/
 
-# 2. UI and Utils only
 COPY ../../src/__init__.py ./src/
 COPY ../../src/ui ./src/ui/
 COPY ../../src/utils ./src/utils/

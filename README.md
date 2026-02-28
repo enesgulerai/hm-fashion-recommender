@@ -31,15 +31,15 @@ graph LR
     Git[🐙 GitHub Repository]
 
     subgraph "Kubernetes Cluster (Minikube / AWS)"
-        
-        Argo[⚙️ ArgoCD] 
-        
+
+        Argo[⚙️ ArgoCD]
+
         F["🖥️ Frontend (Streamlit)"]
         B["⚡ Async Backend (FastAPI)"]
-        
+
         R[("🔥 Redis Cache")]
         Q[("🧠 Qdrant Vector DB")]
-        
+
         M[📈 Prometheus]
         G[📊 Grafana]
     end
@@ -50,15 +50,15 @@ graph LR
 
     U -->|Natural Language Query| F
     F -->|REST API Request| B
-    
+
     B -->|1. Check Cache| R
     R -.->|Cache Hit <2ms| B
     B -->|2. Vector Search| Q
     Q -->|Top-K Candidates| B
-    
+
     B -->|JSON Response| F
     F -->|Product Cards| U
-    
+
     M -.->|Scrapes Async Metrics| B
     G -.->|Visualizes| M
 
@@ -76,9 +76,9 @@ The backend was completely refactored to an asynchronous architecture to prevent
 
 * **Extreme Stress Tested:** Validated via Locust on a local Kubernetes cluster.
 
-* **Results:** Sustained 646 RPS (~2.3M requests/hour) under 2,100 concurrent users with a 0% error rate.
+* **Results:** Sustained 805 RPS (~2.9M requests/hour) under 2,000 concurrent users with a 0% error rate.
 
-![Load Test Results](docs/load_test/load_test_results_2100.png)
+![Load Test Results](docs/load_test/locust.png)
 
 ## 🔄 GitOps & Continuous Deployment (ArgoCD)
 To eliminate manual deployment bottlenecks, this project fully embraces the GitOps philosophy. The cluster state is entirely declarative and managed via Helm charts.
@@ -107,7 +107,7 @@ The project is not just local; it is fully capable of running in the cloud. It w
 
 ![AWS](docs/aws/hm-aws-streamlit.gif)
 
-# Session: Developer Guide 
+# Session: Developer Guide
 Instructions for reproducing the environment, running tests, and deploying the system locally.
 
 ## 🚀 Quick Start (Docker Compose)
@@ -130,7 +130,7 @@ The easiest way to run the project. You don't need Python installed locally, jus
 ## ☸️ Kubernetes Deployment (Local)
 For testing the production-ready Helm charts and Kubernetes manifests locally (requires Docker Desktop K8s or Minikube).
 
-```bash 
+```bash
     # Deploy the entire stack
     make k8s-deploy
 
@@ -155,7 +155,7 @@ Once the system is up, you can access the microservices here:
 
 ## 🧪 Local Development & Testing
 If you want to run the tests or develop locally outside of Docker:
-```bash 
+```bash
     # 1. Setup Virtual Environment
     python -m venv .venv
     source .venv/bin/activate  # Or .venv\Scripts\activate on Windows

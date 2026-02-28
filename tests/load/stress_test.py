@@ -24,7 +24,7 @@ search_terms = [
 
 
 def send_traffic():
-    print("🚀 Traffic Generator Started!")
+    print("Traffic Generator Started!")
     counter = 0
 
     while True:
@@ -40,15 +40,15 @@ def send_traffic():
 
             if response.status_code == 200:
                 source = response.json().get("source", "unknown")
-                print(f"[{counter}] ✅ '{query}' ({latency:.1f}ms) -> {source}")
+                print(f"[{counter}] '{query}' ({latency:.1f}ms) -> {source}")
             else:
-                print(f"[{counter}] ❌ Status: {response.status_code}")
+                print(f"[{counter}] Status: {response.status_code}")
 
             counter += 1
             time.sleep(random.uniform(0.1, 1.0))
 
         except Exception as e:
-            print(f"⚠️ Connection Error: {e}")
+            print(f"Connection Error: {e}")
             time.sleep(2)
 
 

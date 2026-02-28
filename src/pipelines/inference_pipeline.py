@@ -35,10 +35,8 @@ class InferencePipeline:
             text, padding=True, truncation=True, return_tensors="np"
         )
 
-        # --- KRİTİK FİLTRELEME VE TİP DÖNÜŞTÜRME (int64 Fix) ---
         model_inputs = [i.name for i in self.session.get_inputs()]
 
-        # Windows'ta int32 olan tipleri ONNX'in beklediği int64'e zorluyoruz
         ort_inputs = {
             k: v.astype(np.int64) for k, v in encoded_input.items() if k in model_inputs
         }
