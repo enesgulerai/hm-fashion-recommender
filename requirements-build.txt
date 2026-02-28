@@ -1,4 +1,4 @@
-torch==2.2.2 --index-url https://download.pytorch.org/whl/cpu
-transformers==4.39.3
-optimum[onnxruntime]==1.18.0
-onnx==1.15.0
+torch --index-url https://download.pytorch.org/whl/cpu
+transformers
+optimum[onnxruntime]
+numpy<2.0.0
