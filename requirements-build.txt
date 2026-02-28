@@ -1,4 +1,4 @@
 torch --index-url https://download.pytorch.org/whl/cpu
-transformers
-optimum[onnxruntime]
+transformers<5.0.0
+optimum[onnxruntime]<2.0.0
 onnx<=1.15.0
