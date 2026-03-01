@@ -120,7 +120,7 @@ services:
     depends_on:
       - backend
     environment:
-      - BACKEND_URL=http://backend:8001
+      - BACKEND_URL=http://hm_api:8001
     restart: always
     networks:
       - hm_network
