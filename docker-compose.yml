@@ -99,7 +99,7 @@ services:
     environment:
       - QDRANT_HOST=qdrant
       - QDRANT_PORT=6333
-      - REDIS_HOST=redis
+      - REDIS_HOST=hm_redis
       - REDIS_PORT=6379
       - BACKEND_URL=http://backend:8001
     volumes:
