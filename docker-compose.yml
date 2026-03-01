@@ -84,7 +84,7 @@ services:
 
 # 6. BACKEND API
   backend:
-    image: enesgulerml/hm-backend:onnx-final
+    image: enesgulerml/hm-backend:latest
     build:
       context: .
       dockerfile: docker/backend/Dockerfile
