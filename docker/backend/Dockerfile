@@ -40,4 +40,4 @@ COPY src/utils ./src/utils/
 RUN chown -R hm_user:hm_app /app /home/hm_user
 USER hm_user
 
-CMD ["uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "4"]
+CMD ["uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "1"]
