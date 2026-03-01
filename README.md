@@ -105,7 +105,7 @@ The project is not just local; it is fully capable of running in the cloud. It w
 
 ![AWS](docs/aws/hm-aws-instance.png)
 
-![AWS](docs/aws/hm-aws-streamlit.gif)
+![AWS](docs/aws/aws_streamlit_usage.gif)
 
 # Session: Developer Guide
 Instructions for reproducing the environment, running tests, and deploying the system locally.
