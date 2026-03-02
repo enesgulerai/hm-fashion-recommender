@@ -36,7 +36,7 @@ help:
 # =============================================================================
 build-model:
 	@echo "Exporting/Downloading ONNX Model..."
-	@python -m src.models.export_onnx # <--- DİKKAT: BURAYA KENDİ PYTHON SCRİPT YOLUNU YAZ
+	@python -m src.models.export_onnx
 	@echo "Model successfully generated in onnx_model/ directory!"
 
 # =============================================================================
@@ -47,7 +47,7 @@ run: build-model
 	docker-compose up -d --build
 	@echo "====================================================="
 	@echo "SYSTEM IS UP AND RUNNING!"
-	@echo "UI:  http://localhost:8501"
+	@echo "UI:  http://localhost:8502"
 	@echo "API: http://localhost:8001"
 	@echo "Tip: To track logs, type 'make logs'."
 
