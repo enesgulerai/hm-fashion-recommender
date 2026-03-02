@@ -18,10 +18,11 @@ services:
       timeout: 5s
       retries: 5
 
-  # 2. REDIS
+# 2. REDIS
   redis:
     image: redis:alpine
     container_name: hm_redis
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
     ports:
       - "6380:6379"
     volumes:
