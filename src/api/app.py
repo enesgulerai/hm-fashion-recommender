@@ -2,6 +2,7 @@ import json
 import os
 import sys
 import time
+from collections import deque
 from contextlib import asynccontextmanager
 
 import numpy as np
@@ -15,7 +16,6 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse
 from prometheus_fastapi_instrumentator import Instrumentator
 from pydantic import BaseModel, Field
-from collections import deque
 
 # --- MODULE PATH SETTING ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
