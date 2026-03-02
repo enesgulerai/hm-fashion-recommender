@@ -61,6 +61,6 @@ ingestion:
   enabled: true
   ttlSecondsAfterFinished: 600
   image:
-    repository: hm-etl
+    repository: hm-backend
     tag: latest
     pullPolicy: IfNotPresent
