@@ -61,20 +61,33 @@ if submit_btn and query:
             # Real-time latency measurement
             start_time = time.time()
             response = requests.post(FULL_API_URL, json=payload, timeout=10)
+            response.raise_for_status()
             end_time = time.time()
 
-            if response.status_code == 200:
-                data = response.json()
-                # Save results to session state
-                st.session_state.results = data.get("results", [])
-                st.session_state.source = data.get("source", "Unknown")
-                st.session_state.latency = end_time - start_time
-            else:
-                st.error(f"❌ API Error: {response.status_code}")
-                st.session_state.results = None
+            data = response.json()
+            # Save results to session state
+            st.session_state.results = data.get("results", [])
+            st.session_state.source = data.get("source", "Unknown")
+            st.session_state.latency = end_time - start_time
+
+        except requests.exceptions.Timeout:
+            st.warning(
+                "⏳ The wardrobe is huge! AI took too long to scan. Please try again."
+            )
+            st.session_state.results = None
 
         except requests.exceptions.ConnectionError:
-            st.error(f"🚨 Connection Error! Cannot reach API: {FULL_API_URL}")
+            st.error(
+                "🔌 Our AI stylist is currently offline for maintenance. Please check back later!"
+            )
+            st.session_state.results = None
+
+        except requests.exceptions.HTTPError as err:
+            st.error("❌ Oops! Something went wrong behind the scenes.")
+            st.session_state.results = None
+
+        except Exception as e:
+            st.error("⚠️ An unexpected error occurred.")
             st.session_state.results = None
 
 # --- DISPLAY RESULTS ---
