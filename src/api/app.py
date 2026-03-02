@@ -15,6 +15,7 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse
 from prometheus_fastapi_instrumentator import Instrumentator
 from pydantic import BaseModel, Field
+from collections import deque
 
 # --- MODULE PATH SETTING ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -38,7 +39,7 @@ reference_data = pd.DataFrame(
     }
 )
 reference_data = reference_data[reference_data["text_len"] > 0]
-current_data_buffer = []
+current_data_buffer = deque(maxlen=1000)
 
 
 # --- JSON FIX FOR NUMPY ---
@@ -194,4 +195,4 @@ def dashboard():
 
 
 if __name__ == "__main__":
-    uvicorn.run("app:app", host="0.0.0.0", port=8001, workers=4)
+    uvicorn.run("app:app", host="0.0.0.0", port=8001, workers=1)
