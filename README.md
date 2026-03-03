@@ -72,7 +72,7 @@ The backend was completely refactored to an asynchronous architecture to prevent
 
 * **Redis Caching:** Slashes inference latency to <2ms on cache hits.
 
-![Redis Test Results](docs/grafana/redis.png)
+![Redis Test Results](docs/grafana/grafana.png)
 
 * **Extreme Stress Tested:** Validated via Locust on a local Kubernetes cluster.
 
