@@ -26,6 +26,7 @@ help:
 	@echo " ===== GITOPS (ARGOCD) ====="
 	@echo "  make argocd-ui    : Port-forwards ArgoCD UI to https://localhost:8080"
 	@echo " ===== UTILITIES ====="
+	@echo "  make install      : Installs dependencies for tests."
 	@echo "  make clean        : Clears cache and bytecode files."
 	@echo "  make prune        : Deletes leftover dangling Docker images."
 	@echo "  make test         : Runs unit tests."
@@ -34,7 +35,11 @@ help:
 # =============================================================================
 # MLOPS (MODEL PREPARATION)
 # =============================================================================
-build-model:
+install-build:
+	@echo "Installing model build dependencies from requirements/build.txt..."
+	@pip install -q -r requirements/build.txt
+
+build-model: install-build
 	@echo "Exporting/Downloading ONNX Model..."
 	@python -m src.models.export_onnx
 	@echo "Model successfully generated in onnx_model/ directory!"
@@ -94,6 +99,11 @@ argocd-ui:
 # =============================================================================
 # UTILITIES
 # =============================================================================
+install:
+	@echo "Installing development dependencies from requirements/dev.txt..."
+	@pip install -q -r requirements/dev.txt
+	@echo "Development environment is ready!"
+
 prune:
 	docker image prune -f
 
@@ -103,5 +113,5 @@ clean:
 	@echo "Clean complete."
 
 test:
-	@echo "Running unit tests..."
-	pytest tests/
+	@echo "Running unit and integration tests..."
+	@python -m pytest tests/
