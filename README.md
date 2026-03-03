@@ -115,7 +115,7 @@ The easiest way to run the project. You don't need Python installed locally, jus
 
 ```bash
     # 1. Clone the Repository
-    git clone https://github.com/enesgulerml/hm-fashion-recommender.git
+    git clone https://github.com/enesgulerai/hm-fashion-recommender.git
     cd hm-fashion-recommender
 
     # 2. Run the System (Automates Data Ingestion -> Embedding -> DB Indexing)
@@ -161,7 +161,7 @@ If you want to run the tests or develop locally outside of Docker:
     source .venv/bin/activate  # Or .venv\Scripts\activate on Windows
 
     # 2. Install Dependencies
-    pip install -r requirements/dev.txt
+    make install
 
     # 3. Run the Pytest Suite
     make test
