@@ -1,8 +1,3 @@
-# --- Master Requirements File ---
-
--r src/api/requirements.txt
--r src/ui/requirements.txt
-
 pytest==9.0.2
 black==26.1.0
 isort==7.0.0

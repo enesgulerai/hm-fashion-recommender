@@ -23,12 +23,12 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          
+
           pip install "sentence-transformers>=3.0.0" torch torchvision --extra-index-url https://download.pytorch.org/whl/cpu
-          
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          
-          pip install black isort pytest httpx
+
+          pip install -r requirements/backend.txt
+
+          pip install -r requirements/dev.txt
 
       - name: Check Code Formatting (Black)
         run: black --check .

@@ -161,7 +161,7 @@ If you want to run the tests or develop locally outside of Docker:
     source .venv/bin/activate  # Or .venv\Scripts\activate on Windows
 
     # 2. Install Dependencies
-    pip install -r requirements.txt
+    pip install -r requirements/dev.txt
 
     # 3. Run the Pytest Suite
     make test

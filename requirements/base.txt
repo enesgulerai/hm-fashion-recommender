@@ -1,0 +1,4 @@
+# --- Master Requirements File ---
+
+-r requirements/backend.txt
+-r requirements/frontend.txt

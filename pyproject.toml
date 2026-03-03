@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "hm-fashion-recommendation"
 version = "0.1.0"
 description = "H&M Recommendation System - End-to-End MLOps Refactoring"
-authors = [{name = "Enes Guler", email = "enesguler.ml@gmail.com"}]
+authors = [{name = "Enes Guler", email = "hello.enesguler@gmail.com"}]
 requires-python = ">=3.10"
 dependencies = [
 ]

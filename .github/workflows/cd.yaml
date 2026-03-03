@@ -23,7 +23,7 @@ jobs:
 
       - name: Install dependencies and Build ONNX Model
         run: |
-          pip install -r requirements-build.txt
+          pip install -r requirements/build.txt
           python -m src.models.export_onnx
 
       # --- 2. DOCKER ---

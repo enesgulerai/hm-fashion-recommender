@@ -12,7 +12,7 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 RUN pip install --upgrade pip
 
-COPY src/api/requirements.txt .
+COPY requirements/backend.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # --- STAGE 2: RUNTIME ---
