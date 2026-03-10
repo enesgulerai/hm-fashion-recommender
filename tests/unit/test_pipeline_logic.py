@@ -44,11 +44,8 @@ def test_search_logic_success(mock_tokenizer, mock_onnx_session, mock_qdrant):
         "attention_mask": np.array([[1, 1, 1]]),
     }
 
-    # Mock ONNX Session Output (Mean Pooling için uygun bir tensor dönüyoruz)
-    # Shape: (batch_size, sequence_length, hidden_size) -> (1, 3, 384)
     fake_embeddings = np.random.rand(1, 3, 384).astype(np.float32)
     mock_onnx_session.return_value.run.return_value = [fake_embeddings]
-    # Input listesini taklit et (inference_pipeline.py içindeki model_inputs için)
     mock_input = MagicMock()
     mock_input.name = "input_ids"
     mock_onnx_session.return_value.get_inputs.return_value = [mock_input]

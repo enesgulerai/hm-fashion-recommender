@@ -1,4 +1,4 @@
-name: CI - Quality & Tests
+name: CI Pipeline - Quality & Tests
 
 on:
   push:

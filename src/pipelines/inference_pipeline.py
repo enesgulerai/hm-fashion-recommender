@@ -30,7 +30,7 @@ class InferencePipeline:
         logger.info("ONNX Model Loaded! Ready to fly.")
 
     def encode_text(self, text: str) -> list[float]:
-        """Metni saf NumPy ve ONNX kullanarak vektöre çevirir (Mean Pooling)."""
+        """Converts text to vector using pure NumPy and ONNX. (Mean Pooling)."""
         encoded_input = self.tokenizer(
             text, padding=True, truncation=True, return_tensors="np"
         )
