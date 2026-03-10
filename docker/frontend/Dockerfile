@@ -11,7 +11,7 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 COPY requirements/frontend.txt .
-RUN pip install --upgrade pip && \
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
     pip install --no-cache-dir -r frontend.txt
 
 # --- STAGE 2: RUNTIME ---
@@ -27,6 +27,8 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
 RUN groupadd -r hm_app && useradd -r -g hm_app -d /home/hm_user -m hm_user
 
