@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
     pip install --no-cache-dir -r frontend.txt
 
 # --- STAGE 2: RUNTIME ---
-FROM python:3.10-slim as runtime
+FROM python:3.10-slim AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
