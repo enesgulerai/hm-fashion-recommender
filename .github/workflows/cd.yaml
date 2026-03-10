@@ -26,7 +26,7 @@ jobs:
           pip install -r requirements/build.txt
           python -m src.models.export_onnx
 
-      # --- 2. DOCKER ---
+      # --- 2. DOCKER SETUP ---
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -36,24 +36,50 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # --- BACKEND BUILD & PUSH ---
-      - name: Build and Push Backend
+      # --- 3. BACKEND: BUILD -> SCAN -> PUSH ---
+      - name: Build Backend (Local)
         uses: docker/build-push-action@v5
         with:
           context: .
           file: docker/backend/Dockerfile
-          push: true
+          push: false
+          load: true
           tags: enesgulerml/hm-backend:latest
           cache-from: type=registry,ref=enesgulerml/hm-backend:latest
-          cache-to: type=inline
 
-      # --- FRONTEND BUILD & PUSH ---
-      - name: Build and Push Frontend
+      - name: Run Trivy Vulnerability Scanner (Backend)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'enesgulerml/hm-backend:latest'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Push Backend to Docker Hub
+        run: docker push enesgulerml/hm-backend:latest
+
+      # --- 4. FRONTEND: BUILD -> SCAN -> PUSH ---
+      - name: Build Frontend (Local)
         uses: docker/build-push-action@v5
         with:
           context: .
           file: docker/frontend/Dockerfile
-          push: true
+          push: false
+          load: true
           tags: enesgulerml/hm-frontend:latest
           cache-from: type=registry,ref=enesgulerml/hm-frontend:latest
-          cache-to: type=inline
+
+      - name: Run Trivy Vulnerability Scanner (Frontend)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'enesgulerml/hm-frontend:latest'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Push Frontend to Docker Hub
+        run: docker push enesgulerml/hm-frontend:latest
