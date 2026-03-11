@@ -7,10 +7,13 @@ from src.pipelines.inference_pipeline import InferencePipeline
 
 
 # --- TEST 1: Initialization Verification ---
+@patch("src.pipelines.inference_pipeline.InferencePipeline._ensure_model_exists")
 @patch("src.pipelines.inference_pipeline.QdrantClient")
 @patch("src.pipelines.inference_pipeline.ort.InferenceSession")
 @patch("src.pipelines.inference_pipeline.AutoTokenizer.from_pretrained")
-def test_pipeline_initialization(mock_tokenizer, mock_onnx_session, mock_qdrant):
+def test_pipeline_initialization(
+    mock_tokenizer, mock_onnx_session, mock_qdrant, mock_ensure
+):
     """
     Test: Pipeline Initialization (ONNX Version)
     Expected: Qdrant, Tokenizer and ONNX Session should be initialized correctly.
@@ -20,6 +23,7 @@ def test_pipeline_initialization(mock_tokenizer, mock_onnx_session, mock_qdrant)
     mock_qdrant.assert_called_once()
     mock_onnx_session.assert_called_once()
     mock_tokenizer.assert_called_once()
+    mock_ensure.assert_called_once()
 
     assert pipeline.client == mock_qdrant.return_value
     assert pipeline.session == mock_onnx_session.return_value
@@ -27,10 +31,13 @@ def test_pipeline_initialization(mock_tokenizer, mock_onnx_session, mock_qdrant)
 
 
 # --- TEST 2: Behavioral & Data Verification ---
+@patch("src.pipelines.inference_pipeline.InferencePipeline._ensure_model_exists")
 @patch("src.pipelines.inference_pipeline.QdrantClient")
 @patch("src.pipelines.inference_pipeline.ort.InferenceSession")
 @patch("src.pipelines.inference_pipeline.AutoTokenizer.from_pretrained")
-def test_search_logic_success(mock_tokenizer, mock_onnx_session, mock_qdrant):
+def test_search_logic_success(
+    mock_tokenizer, mock_onnx_session, mock_qdrant, mock_ensure
+):
     """
     Test: Lookup Function (Successful Scenario with ONNX)
     """
@@ -70,10 +77,13 @@ def test_search_logic_success(mock_tokenizer, mock_onnx_session, mock_qdrant):
 
 
 # --- TEST 3: Edge Case / Zero State ---
+@patch("src.pipelines.inference_pipeline.InferencePipeline._ensure_model_exists")
 @patch("src.pipelines.inference_pipeline.QdrantClient")
 @patch("src.pipelines.inference_pipeline.ort.InferenceSession")
 @patch("src.pipelines.inference_pipeline.AutoTokenizer.from_pretrained")
-def test_search_logic_empty_results(mock_tokenizer, mock_onnx, mock_qdrant):
+def test_search_logic_empty_results(
+    mock_tokenizer, mock_onnx_session, mock_qdrant, mock_ensure
+):
     """Test: Qdrant empty results handling."""
     pipeline = InferencePipeline()
     # Mocking encode_text to avoid complex internal mocking
@@ -85,10 +95,13 @@ def test_search_logic_empty_results(mock_tokenizer, mock_onnx, mock_qdrant):
 
 
 # --- TEST 4: Resilience ---
+@patch("src.pipelines.inference_pipeline.InferencePipeline._ensure_model_exists")
 @patch("src.pipelines.inference_pipeline.QdrantClient")
 @patch("src.pipelines.inference_pipeline.ort.InferenceSession")
 @patch("src.pipelines.inference_pipeline.AutoTokenizer.from_pretrained")
-def test_search_logic_qdrant_failure(mock_tokenizer, mock_onnx, mock_qdrant):
+def test_search_logic_qdrant_failure(
+    mock_tokenizer, mock_onnx_session, mock_qdrant, mock_ensure
+):
     """Test: Qdrant exception handling."""
     pipeline = InferencePipeline()
     pipeline.encode_text = MagicMock(return_value=[0.1] * 384)
