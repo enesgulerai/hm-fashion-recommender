@@ -34,7 +34,7 @@ qdrant_storage/
 */.ipynb_checkpoints/*
 
 # --- ML & Models (Safety Net) ---
-onnx_model/
+onnx_model/model.onnx
 checkpoints/
 *.pt
 *.pth
@@ -55,3 +55,9 @@ dist/
 
 # Local Helm Binary
 helm.exe
+
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/.terraform.lock.hcl
