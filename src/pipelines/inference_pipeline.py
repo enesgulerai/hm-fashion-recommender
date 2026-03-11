@@ -1,8 +1,9 @@
 import os
+
+import boto3  # YENİ: AWS SDK
 import numpy as np
 import onnxruntime as ort
-import boto3  # YENİ: AWS SDK
-from botocore.exceptions import NoCredentialsError, ClientError
+from botocore.exceptions import ClientError, NoCredentialsError
 from qdrant_client import QdrantClient
 from transformers import AutoTokenizer
 
