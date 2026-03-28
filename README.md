@@ -134,8 +134,8 @@ For testing the production-ready Helm charts and Kubernetes manifests locally (r
     # Deploy the entire stack
     make k8s-deploy
 
-    # Run the automated Data Ingestion Job
-    make k8s-ingest
+    # Watch Logs
+    make k8s-logs
 
     # Teardown all K8s resources
     make k8s-stop
