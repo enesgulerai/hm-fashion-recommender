@@ -21,7 +21,7 @@ help:
 	@echo " ===== KUBERNETES & HELM ====="
 	@echo "  make k8s-build    : Builds Backend and Frontend Docker images."
 	@echo "  make k8s-deploy   : Deploys the Full System & Auto-Runs ETL via Helm."
-	@echo "  make k8s-logs-etl : Tails the ETL Ingestion logs on K8s."
+	@echo "  make k8s-logs     : Tails the ETL Ingestion logs on K8s."
 	@echo "  make k8s-stop     : Destroys all K8s resources & Helm releases."
 	@echo " ===== GITOPS (ARGOCD) ====="
 	@echo "  make argocd-ui    : Port-forwards ArgoCD UI to https://localhost:8080"
@@ -77,9 +77,9 @@ k8s-deploy: k8s-build
 	helm upgrade --install hm-recommender ./hm-chart
 	@echo "Deployment triggered! Frontend will be available at: http://localhost:30001"
 
-k8s-logs-etl:
+k8s-logs:
 	@echo "Tailing ETL Ingestion Logs (Press Ctrl+C to exit)..."
-	kubectl logs -l job-name=etl-ingestion -f --pod-running-timeout=60s
+	kubectl get pods
 
 k8s-stop:
 	@echo "Stopping and destroying all Kubernetes resources..."
