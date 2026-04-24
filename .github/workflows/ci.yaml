@@ -1,4 +1,4 @@
-name: CI Pipeline - Quality & Tests
+name: CI
 
 on:
   push:
@@ -44,6 +44,11 @@ jobs:
 
       - name: Check Import Sorting (Isort)
         run: isort --check-only --profile black .
+
+      - name: Run Bandit Security Scan
+        run: |
+          pip install bandit
+          bandit -r . -lll
 
       # --- 3. RUN TESTS ---
       - name: Run Tests
