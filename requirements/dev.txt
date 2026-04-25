@@ -16,7 +16,7 @@ ujson==5.9.0
 gdown==5.2.1
 
 # ===== API =====
-fastapi==0.111.0
+fastapi==0.135.1
 redis==5.0.4
 prometheus-fastapi-instrumentator
 qdrant-client==1.9.1
